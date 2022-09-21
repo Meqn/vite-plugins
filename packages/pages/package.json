@@ -1,0 +1,55 @@
+{
+  "name": "vite-plugin-page-html",
+  "version": "0.0.1",
+  "description": "Simple and flexible MPA support for vite.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsup-node src/index.ts --watch --ignore-watch examples",
+    "build": "tsup-node src/index.ts --format esm,cjs --dts"
+  },
+  "keywords": [
+    "vite",
+    "mpa",
+    "multi-page",
+    "html",
+    "vite-plugin",
+    "vite-ejs",
+    "vite-mpa",
+    "vite-html",
+    "vite-pages",
+    "vite-multi-page"
+  ],
+  "engines": {
+    "node": ">= 14.0.0"
+  },
+  "homepage": "https://github.com/Meqn/vite-plugins",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Meqn/vite-plugins.git"
+  },
+  "author": "Mervin <mengqing723@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Meqn/vite-plugins/issues"
+  },
+  "dependencies": {
+    "diy-log": "^2.4.0",
+    "ejs": "^3.1.8",
+    "fs-extra": "^10.1.0",
+    "lodash": "^4.17.21"
+  },
+  "peerDependencies": {
+    "vite": ">=2.0.0"
+  }
+}
