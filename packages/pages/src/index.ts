@@ -1,6 +1,6 @@
 import { normalizePath, Plugin, ViteDevServer } from 'vite'
 
-import { PagesOptions, PageEntry, PageData, PagesData } from './types'
+import { PagesOptions, PageData, PagesData } from './types'
 
 import {
   resolve,
@@ -19,6 +19,9 @@ import { name as PLUGIN_NAME } from '../package.json'
 type PageListItem = {
   name: string
   template: string
+}
+type PageEntry = {
+  [key: string]: string
 }
 
 export default function (pluginOptions: PagesOptions | undefined): Plugin {

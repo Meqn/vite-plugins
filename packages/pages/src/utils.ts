@@ -1,6 +1,6 @@
 import path from 'path'
-import lodash from 'lodash'
-import logger from 'diy-log'
+import { camelCase, merge } from 'lodash'
+import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
 import fs from 'fs-extra'
 import { normalizePath } from 'vite'
@@ -20,12 +20,12 @@ export const cwd: string = normalizePath(process.cwd())
 export const resolve = (...args: string[]): string => path.resolve(cwd, ...args)
 
 export function errlog(...args: string[]): void {
-  logger.error(`[${logger.colors.gray(PLUGIN_NAME)}] `, ...args)
+  errorLog(`[${colors.gray(PLUGIN_NAME)}] `, ...args)
 }
 
 export function getPageName(path: string): string {
   const _path = path.startsWith('/') ? path.slice(1) : path
-  return lodash.camelCase(_path.split('/').join('_'))
+  return camelCase(_path.split('/').join('_'))
 }
 
 export function cleanUrl(url: string) {
@@ -44,6 +44,12 @@ export async function readHtml(path: string): Promise<string> {
   }
 }
 
+/**
+ * 合并数据并返回 Ejs 渲染函数
+ * @param ejsOptions Ejs配置
+ * @param extendData 公共数据
+ * @returns function
+ */
 export function compileHtml(
   ejsOptions: EjsOptions = {},
   extendData: EjsExtendData = {}
@@ -65,7 +71,7 @@ export function compileHtml(
 export function generatePage(options: PagesOptions): PagesData {
   const {
     page = 'index',
-    entry = '/src/main.js',
+    entry = 'src/main.js',
     template = 'index.html',
     title = 'Vite App',
     data = {},
@@ -99,7 +105,7 @@ export function generatePage(options: PagesOptions): PagesData {
           entry: pageItem
         }
       } else {
-        pages[pageName] = lodash.merge({}, defaults, {
+        pages[pageName] = merge({}, defaults, {
           ...pageItem,
           path: item
         })
@@ -130,7 +136,7 @@ async function checkExistOfPath(p: string): Promise<string> {
 
     return result
   } catch (e) {
-    errlog((<Error>e).message)
+    // errlog((<Error>e).message)
     return result
   }
 }
