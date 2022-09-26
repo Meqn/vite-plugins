@@ -36,6 +36,7 @@ export function createPageHtmlPlugin(
 
   return {
     name: PLUGIN_NAME,
+    enforce: 'pre',
     async config(config, { command }) {
       Object.keys(pages).forEach(name => {
         const current: PageData = pages[name]
