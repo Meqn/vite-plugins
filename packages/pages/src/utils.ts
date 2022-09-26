@@ -75,6 +75,11 @@ export function compileHtml(
   }
 }
 
+/**
+ * 通过配置项生成所需要的页面数据
+ * @param options {PagesOptions} 配置项
+ * @returns PagesData
+ */
 export function generatePage(options: PagesOptions = {}): PagesData {
   const {
     page = 'index',
@@ -157,7 +162,7 @@ async function copyOneFile(src: string, dest: string): Promise<string> {
     })
     return result
   } catch (e) {
-    errlog((<Error>e).message)
+    // errlog((<Error>e).message)
     return ''
   }
 }
@@ -189,7 +194,7 @@ export async function removeVirtualHtml(files: string[]): Promise<void> {
 }
 
 function minifyOptions(options: true | MinifyOptions): MinifyOptions {
-  const _config = options === true ? {} : options
+  const opts = options === true ? {} : options
   return {
     collapseWhitespace: true,
     keepClosingSlash: true,
@@ -199,7 +204,7 @@ function minifyOptions(options: true | MinifyOptions): MinifyOptions {
     removeStyleLinkTypeAttributes: true,
     useShortDoctype: true,
     minifyCSS: true,
-    ..._config
+    ...opts
   }
 }
 

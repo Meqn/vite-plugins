@@ -1,4 +1,5 @@
 import { Options as _EjsOptions } from 'ejs'
+import type { Options as MinifyOptions } from 'html-minifier-terser'
 
 export type EjsOptions = _EjsOptions
 
@@ -68,7 +69,7 @@ export interface PagesOptions {
    * Is compressed html file?
    * @type {boolean}
    */
-  minify?: boolean
+  minify?: boolean | MinifyOptions
 
   /**
    * ejs options
