@@ -29,7 +29,7 @@ export interface PagesOptions {
    * If string, the value is the page path (SPA)
    * @type {string | { path: PageConfig }}
    */
-  page:
+  page?:
     | string
     | {
         [key: string]: string | PageConfig

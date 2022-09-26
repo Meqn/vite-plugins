@@ -4,6 +4,11 @@ import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
 import fs from 'fs-extra'
 import { normalizePath } from 'vite'
+import { createFilter } from '@rollup/pluginutils'
+import {
+  type Options as MinifyOptions,
+  minify as minifyFn
+} from 'html-minifier-terser'
 
 import {
   Obj,
@@ -22,6 +27,8 @@ export const resolve = (...args: string[]): string => path.resolve(cwd, ...args)
 export function errlog(...args: string[]): void {
   errorLog(`[${colors.gray(PLUGIN_NAME)}] `, ...args)
 }
+
+export const htmlFilter = createFilter(['**/*.html'])
 
 export function getPageName(path: string): string {
   const _path = path.startsWith('/') ? path.slice(1) : path
@@ -68,7 +75,7 @@ export function compileHtml(
   }
 }
 
-export function generatePage(options: PagesOptions): PagesData {
+export function generatePage(options: PagesOptions = {}): PagesData {
   const {
     page = 'index',
     entry = 'src/main.js',
@@ -179,4 +186,29 @@ export async function removeVirtualHtml(files: string[]): Promise<void> {
   } catch (e) {
     errlog((<Error>e).message)
   }
+}
+
+function minifyOptions(options: true | MinifyOptions): MinifyOptions {
+  const _config = options === true ? {} : options
+  return {
+    collapseWhitespace: true,
+    keepClosingSlash: true,
+    removeComments: true,
+    removeRedundantAttributes: true,
+    removeScriptTypeAttributes: true,
+    removeStyleLinkTypeAttributes: true,
+    useShortDoctype: true,
+    minifyCSS: true,
+    ..._config
+  }
+}
+
+export async function minifyHtml(
+  html: string,
+  minify: boolean | MinifyOptions
+) {
+  if (typeof minify === 'boolean' && !minify) {
+    return html
+  }
+  return await minifyFn(html, minifyOptions(minify))
 }
