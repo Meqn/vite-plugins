@@ -1,18 +1,18 @@
 # vite-plugin-page-html
 
-**English** | [中文](./README.zh_CN.md)
+**English** | [中文](https://github.com/Meqn/vite-plugins/blob/main/packages/page-html/README.zh_CN.md)
 
 More flexible MPA (Multi-Page App) support for vite, Similar to the [pages](https://cli.vuejs.org/config/#pages) option of vue-cli.
 
 ## Features
 
-1. Multi-page/Single-page application support
-2. Html entry alias (custom url)
-3. Support custom `template`
-4. Support custom `entry`
-5. EJS template capability
-6. External library import (CDN)
-7. HTML compression capability
+* 📚 Multi-page/Single-page application support
+* 📡 Html entry alias (custom url)
+* 📊 Support custom `template`
+* 🔑 Support custom `entry`
+* 🗳 EJS template capability
+* 🔗 External library import (CDN)
+* 🗜 HTML compression capability
 
 ## Why ?
 
@@ -249,34 +249,37 @@ export default defineConfig({
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= pageHtmlVitePlugin.title %></title>
 
-    <!-- import css -->
-    <% for (var i in pageHtmlVitePlugin.data.styles) { %>
-		<link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
-		<% } %>
-  </head>
-  <body>
-    <div id="app"></div>
-    <!-- production: import js -->
-    <% if(PROD) { %>
-      <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
-      <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-			<% } %>
-		<% } else { %>
-      <!-- 非生产环境 -->
-      <script src="/path/to/development-only-script.js"></script>
-		<% } %>
-    
-    <!-- 入口文件 -->
-    <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= pageHtmlVitePlugin.title %>
+  </title>
+
+  <!-- import css -->
+  <% for (var i in pageHtmlVitePlugin.data.styles) { %>
+  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
+  <% } %>
+</head>
+
+<body>
+  <div id="app"></div>
+  <!-- production: import js -->
+  <% if(PROD) { %>
+    <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
+    <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
+  <% } else { %>
+    <!-- 非生产环境 -->
+    <script src="/path/to/development-only-script.js"></script>
+  <% } %>
+
+  <!-- entry -->
+  <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
+</body>
 </html>
-
 ```
 
 ### Default data

@@ -1,18 +1,18 @@
 # vite-plugin-page-html
 
-**中文** | [English](./README.md)
+**中文** | [English](https://github.com/Meqn/vite-plugins/blob/main/packages/page-html/README.md)
 
 简单灵活的 MPA（多页面应用）Vite插件。支持html模板和访问路径重写，类似于`vue-cli` 的[pages选项](https://cli.vuejs.org/en/config/#pages) 。
 
 ## Features
 
-1. 单页面(SPA)和多页面(MPA)模式
-2. 支持页面入口别名 (`自定义访问路径`)
-3. 支持自定义 `template`
-4. 支持自定义 `entry`
-5. 支持 Ejs 模板语法
-6. 支持外部文件库引入 (CDN)
-7. 支持HTML文件压缩能力
+* 📚 单页面(SPA)和多页面(MPA)模式
+* 📡 支持页面入口别名 (`自定义访问路径`)
+* 📊 支持自定义 `template`
+* 🔑 支持自定义 `entry`
+* 🗳 支持 Ejs 模板语法
+* 🔗 支持外部文件库引入 (CDN)
+* 🗜 支持HTML文件压缩能力
 
 ## Why ?
 
@@ -249,34 +249,37 @@ export default defineConfig({
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= pageHtmlVitePlugin.title %></title>
 
-    <!-- 引入css文件 -->
-    <% for (var i in pageHtmlVitePlugin.data.styles) { %>
-		<link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
-		<% } %>
-  </head>
-  <body>
-    <div id="app"></div>
-    <!-- 生产环境 引入js文件 -->
-    <% if(PROD) { %>
-      <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
-      <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-			<% } %>
-		<% } else { %>
-      <!-- 非生产环境 -->
-      <script src="/path/to/development-only-script.js"></script>
-		<% } %>
-    
-    <!-- 入口文件 -->
-    <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+  <%= pageHtmlVitePlugin.title %>
+  </title>
+
+  <!-- 引入css文件 -->
+  <% for (var i in pageHtmlVitePlugin.data.styles) { %>
+  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
+  <% } %>
+</head>
+
+<body>
+  <div id="app"></div>
+  <!-- 生产环境 引入js文件 -->
+  <% if(PROD) { %>
+    <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
+    <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
+  <% } else { %>
+    <!-- 非生产环境 -->
+    <script src="/path/to/development-only-script.js"></script>
+  <% } %>
+
+  <!-- 入口文件 -->
+  <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
+</body>
 </html>
-
 ```
 
 ### Default data
