@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-page-html",
-  "version": "0.2.0",
-  "description": "Simple and flexible MPA support for vite.",
+  "version": "1.0.0",
+  "description": "More flexible MPA (Multi-Page App) support for vite. 简单灵活的 MPA(多页应用) Vite插件。",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
