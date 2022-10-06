@@ -236,8 +236,8 @@ export default defineConfig({
       template: 'public/template.html',
       title: 'User Page',
       data: {
-        styles: [''],
-        scripts: ['']
+        styles: '',
+        scripts: ''
       }
     })
   ]
@@ -259,18 +259,14 @@ export default defineConfig({
   </title>
 
   <!-- 引入css文件 -->
-  <% for (var i in pageHtmlVitePlugin.data.styles) { %>
   <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
-  <% } %>
 </head>
 
 <body>
   <div id="app"></div>
   <!-- 生产环境 引入js文件 -->
   <% if(PROD) { %>
-    <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
-    <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
+    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
   <% } else { %>
     <!-- 非生产环境 -->
     <script src="/path/to/development-only-script.js"></script>

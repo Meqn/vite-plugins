@@ -29,7 +29,7 @@ Although there are plug-ins that can solve these problems, but after using it, i
 - `vite >= 2.x`
 
 ```bash
-npm install vite-plugin-page-html -D
+npm install -D vite-plugin-page-html
 ```
 
 ## Usage
@@ -67,8 +67,8 @@ PageHtml({
 | `entry` | `src/main.js` | entry file |
 | `template` | `index.html` | template file（`global`） |
 | `title` | - | page title（`global`） |
-| `data` | - | page data（`global`）Rendering via `ejs`<br>`<%= pageHtmlVitePlugin.data %>` |
-| `minify` | `false` | Is compress html. `MinifyOptions` [@See](https://github.com/terser/html-minifier-terser#options-quick-reference) |
+| `data` | - | page data（`global`）<br>Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>` |
+| `minify` | `false` | Compressed file. `MinifyOptions` [@See](https://github.com/terser/html-minifier-terser#options-quick-reference) |
 | `ejsOptions` | - | `ejs` options, [@See](https://github.com/mde/ejs#options) |
 
 ### PageConfig
@@ -81,7 +81,7 @@ PageHtml({
 
 | property | default | description                                                  |
 | -------- | ------- | ------------------------------------------------------------ |
-| `path`   | -       | Single page configuration.<br>1. `path` as output. <br>2. If value is string, it is the entry file. <br>`PageOptions` [@See](#PageOptions)。 |
+| `path`   | -       | Single page configuration.<br>1. `path` as output. <br>2. If value is string, it is the entry file. <br>3. `PageOptions` [@See](#PageOptions)。 |
 
 ### PageOptions
 
@@ -99,7 +99,7 @@ PageHtml({
 | `entry`    | -            | `required` entry file                                        |
 | `template` | `index.html` | template. Defaults is global `template`                      |
 | `title`    | -            | title. Defaults is global `title`                            |
-| `data`     | -            | page data（`global`）Rendering via `ejs`<br/>Merge global `data` by default.（`lodash.merge` ） |
+| `data`     | -            | page data, Rendering via `ejs`<br/>Merge global `data` by default via `lodash.merge` |
 
 ## Examples
 
@@ -221,8 +221,8 @@ export default defineConfig({
 
 1. Default data is written via `<%= BASE_URL %>` .
 2. Custom data is written via `<%= pageHtmlVitePlugin.title %>`.
-	
-	> Custom data contains `{ entry, title, data } `
+
+  > Custom data contains `{ entry, title, data } `
 
 ```js
 // vite.config.js
@@ -236,8 +236,8 @@ export default defineConfig({
       template: 'public/template.html',
       title: 'User Page',
       data: {
-        styles: [''],
-        scripts: ['']
+        styles: '',
+        scripts: ''
       }
     })
   ]
@@ -245,11 +245,10 @@ export default defineConfig({
 ```
 
 ```html
-// index.html
+<!-- index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
@@ -259,18 +258,14 @@ export default defineConfig({
   </title>
 
   <!-- import css -->
-  <% for (var i in pageHtmlVitePlugin.data.styles) { %>
   <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
-  <% } %>
 </head>
 
 <body>
   <div id="app"></div>
   <!-- production: import js -->
   <% if(PROD) { %>
-    <% for (var i in pageHtmlVitePlugin.options.scripts) { %>
-    <script type="text/javascript" src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
+    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
   <% } else { %>
     <!-- 非生产环境 -->
     <script src="/path/to/development-only-script.js"></script>
@@ -303,12 +298,12 @@ When we optimize the project build, we generally introduce commonly used externa
 
 Currently, `output.globals` is only used if `format` is `iife` or `umd`. If `format` is `es` and we want to map the external module to a global variable, we usually solve it with a third-party plugin.
 
-I recommend [rollup-plugin-external-globals](https://github.com/eight04/rollup-plugin-external-globals) and [vite-plugin-externals](https://github.com/crcong/ vite-plugin-externals) .
+I recommend [rollup-plugin-external-globals](https://github.com/eight04/rollup-plugin-external-globals) and [vite-plugin-externals](https://github.com/crcong/vite-plugin-externals) .
 
-Follow me, we combine `rollup-plugin-external-globals` to implement the production environment and import the cdn file.
+Next, we combine `rollup-plugin-external-globals` to implement the production environment and import the cdn file.
 
 ```html
-// index.html
+<!-- index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -383,5 +378,3 @@ export default defineConfig({
 ## Thanks
 
 [vite.js](https://github.com/vitejs/vite) 、 [ejs]() 、[html-minifier-terser](https://github.com/terser/html-minifier-terser) 
-
-
