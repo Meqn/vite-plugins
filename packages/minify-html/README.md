@@ -1,6 +1,6 @@
 # vite-plugin-minify-html
 
-Use `html-minifier-terser` to minify html for vite.
+Use `html-minifier-terser` to minimize html for vite.
 
 ## Useage
 
