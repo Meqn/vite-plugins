@@ -54,9 +54,7 @@ export function createPageHtmlPlugin(
       })
 
       if (command === 'build') {
-        await createVirtualHtml(pages, config.root).then(list => {
-          needRemoveVirtualHtml = list
-        })
+        needRemoveVirtualHtml = await createVirtualHtml(pages, config.root)
       }
 
       if (!config.build?.rollupOptions?.input) {
@@ -104,7 +102,8 @@ export function createPageHtmlPlugin(
       transform(html: string, ctx) {
         // 存在html页面
         try {
-          const url = decodeURI(ctx.path)?.split('?')[0]
+          // const url = decodeURI(ctx.path)?.split('?')[0]
+          const url = cleanUrl(ctx.path)
           const current = pageList.find(item => item.template.endsWith(url))
           return template(html, current ? pages[current.name] : undefined)
         } catch (e) {
