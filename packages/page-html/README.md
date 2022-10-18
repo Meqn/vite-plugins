@@ -154,12 +154,12 @@ export default defineConfig({
           title: 'Product Page'
         },
         'product/virtual': {
-          entry: 'src/virtual/main.js',
+          entry: 'src/product/virtual/main.js',
           template: 'src/product/index.html',
           title: 'Virtual Product Page'
         },
         'product/real': {
-          entry: 'src/real/main.js',
+          entry: 'src/product/real/main.js',
           template: 'src/product/index.html',
           title: 'Real Product Page'
         }
@@ -178,9 +178,9 @@ After starting the dev server, browse:
 - http://localhost:3000/product/index.html  
   Use `src/product/index.html` as the template and `src/product/main.js` as the entry.
 - http://localhost:3000/product/virtual.html  
-  Use `src/product/index.html` as the template and `src/virtual/main.js` as the entry.
+  Use `src/product/index.html` as the template and `src/product/virtual/main.js` as the entry.
 - http://localhost:3000/product/real.html  
-  Use `src/product/index.html` as the template and `src/real/main.js` as the entry.
+  Use `src/product/index.html` as the template and `src/product/real/main.js` as the entry.
 
 The URL structure after the project is constructed is the same as that during development:
 
