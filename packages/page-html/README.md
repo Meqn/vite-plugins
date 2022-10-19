@@ -58,18 +58,49 @@ PageHtml({
   data?: object;
   minify?: boolean | MinifyOptions;
   ejsOptions?: EjsOptions;
+  inject?: InjectOptions;
 })
 ```
 
-| property | default               | description |
-| --------------- | ---- | ---- |
-| `page`          | `index` | `requred` page configuration. If string, the value is the page path.<br>`PageConfig` [@See](#PageConfig)。 |
-| `entry` | `src/main.js` | entry file |
-| `template` | `index.html` | template file（`global`） |
-| `title` | - | page title（`global`） |
-| `data` | - | page data（`global`）<br>Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>` |
-| `minify` | `false` | Compressed file. `MinifyOptions` [@See](https://github.com/terser/html-minifier-terser#options-quick-reference) |
-| `ejsOptions` | - | `ejs` options, [@See](https://github.com/mde/ejs#options) |
+| property     | default       | description                                                                                                     |
+| ------------ | ------------- | --------------------------------------------------------------------------------------------------------------- |
+| `page`       | `index`       | `requred` page configuration. If string, the value is the page path.<br>`PageConfig` [@See](#PageConfig)。      |
+| `entry`      | `src/main.js` | entry file path. <br/>**WARNING:** The `entry` entry will be automatically written to html.                     |
+| `template`   | `index.html`  | template file（`global`）                                                                                       |
+| `title`      | -             | page title（`global`）                                                                                          |
+| `data`       | -             | page data（`global`）<br>Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>`                                 |
+| `minify`     | `false`       | Compressed file. `MinifyOptions` [@See](https://github.com/terser/html-minifier-terser#options-quick-reference) |
+| `ejsOptions` | -             | `ejs` options, [@See](https://github.com/mde/ejs#options)                                                       |
+| `inject`     | -             | Data injected into HTML. `InjectOptions` [@see](#InjectOptions)                                                 |
+
+> 🚨 **WARNING:** The `entry` file has been written to html, you don't need to write it again.
+
+
+
+### InjectOptions
+
+```typescript
+interface InjectOptions {
+  /**
+   * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
+   */
+  tags?: HtmlTagDescriptor[]
+}
+
+interface HtmlTagDescriptor {
+  tag: string
+  attrs?: Record<string, string>
+  children?: string | HtmlTagDescriptor[]
+  /**
+   * 默认： 'head-prepend'
+   */
+  injectTo?: 'head' | 'body' | 'head-prepend' | 'body-prepend'
+}
+```
+
+| property | type                  | default | description                                 |
+| -------- | --------------------- | ------- | ------------------------------------------- |
+| `tags`   | `HtmlTagDescriptor[]` | `[]`    | List of tags to inject. `HtmlTagDescriptor` |
 
 ### PageConfig
 
@@ -79,8 +110,8 @@ PageHtml({
 }
 ```
 
-| property | default | description                                                  |
-| -------- | ------- | ------------------------------------------------------------ |
+| property | default | description                                                                                                                                     |
+| -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `path`   | -       | Single page configuration.<br>1. `path` as output. <br>2. If value is string, it is the entry file. <br>3. `PageOptions` [@See](#PageOptions)。 |
 
 ### PageOptions
@@ -91,15 +122,17 @@ PageHtml({
   template?: string;
   title?: string;
   data?: object;
+  inject?: InjectOptions;
 }
 ```
 
-| property   | default      | description                                                  |
-| ---------- | ------------ | ------------------------------------------------------------ |
-| `entry`    | -            | `required` entry file                                        |
-| `template` | `index.html` | template. Defaults is global `template`                      |
-| `title`    | -            | title. Defaults is global `title`                            |
+| property   | default      | description                                                                          |
+| ---------- | ------------ | ------------------------------------------------------------------------------------ |
+| `entry`    | -            | `required` entry file                                                                |
+| `template` | `index.html` | template. Defaults is global `template`                                              |
+| `title`    | -            | title. Defaults is global `title`                                                    |
 | `data`     | -            | page data, Rendering via `ejs`<br/>Merge global `data` by default via `lodash.merge` |
+| `inject`   | -            | Data injected into HTML. `InjectOptions` [@see](#InjectOptions)                      |
 
 ## Examples
 
@@ -236,8 +269,14 @@ export default defineConfig({
       template: 'public/template.html',
       title: 'User Page',
       data: {
+      	injectStyle: `
+      		<link rel="stylesheet" href="https://unpkg.com/normalize.css" />
+      	`,
+      	injectScript: `
+      		<script src="https://unpkg.com/jquery.js"></script>
+      	`,
         styles: '',
-        scripts: ''
+        scripts: ['']
       }
     })
   ]
@@ -253,26 +292,29 @@ export default defineConfig({
   <meta charset="UTF-8" />
   <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-    <%= pageHtmlVitePlugin.title %>
-  </title>
+  <title><%= pageHtmlVitePlugin.title %></title>
 
   <!-- import css -->
-  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
+  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles %>" />
+
+  <!-- injectStyle -->
+  <%- pageHtmlVitePlugin.data.injectStyle %>
 </head>
 
 <body>
   <div id="app"></div>
   <!-- production: import js -->
   <% if(PROD) { %>
+    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
     <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
   <% } else { %>
     <!-- 非生产环境 -->
     <script src="/path/to/development-only-script.js"></script>
   <% } %>
-
-  <!-- entry -->
-  <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
+	
+  <!-- injectScript -->
+  <%- pageHtmlVitePlugin.data.injectScript %>
 </body>
 </html>
 ```
@@ -319,7 +361,6 @@ Next, we combine `rollup-plugin-external-globals` to implement the production en
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="src/main.js"></script>
     <% if(PROD) { %>
       <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
       <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
@@ -336,7 +377,7 @@ import { defineConfig } from 'vite'
 import PageHtml from 'vite-plugin-page-html'
 import externalGlobals from 'rollup-plugin-external-globals'
 
-export default defineConfig({
+export default defineConfig(({ command, mode }) => {
   // ...
   plugins: [
     // ... plugins

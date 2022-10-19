@@ -58,18 +58,49 @@ PageHtml({
   data?: object;
   minify?: boolean | MinifyOptions;
   ejsOptions?: EjsOptions;
+  inject?: InjectOptions
 })
 ```
 
-| property | default               | description |
-| --------------- | ---- | ---- |
-| `page`          | `index` | `requred` 页面配置项。若为string，则值为页面path。`PageConfig` [详见](#PageConfig)。 |
-| `entry` | `src/main.js` | 页面入口文件 |
-| `template` | `index.html` | 模板（`global`） |
-| `title` | - | 标题（`global`） |
-| `data` | - | 页面数据（`global`），通过`ejs`渲染。`<%= pageHtmlVitePlugin.data %>` |
-| `minify` | `false` | 是否压缩html，`MinifyOptions` [详见](https://github.com/terser/html-minifier-terser#options-quick-reference) |
-| `ejsOptions` | - | `ejs` 配置项, [详见](https://github.com/mde/ejs#options) |
+| property     | default       | description                                                                                                  |
+| ------------ | ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `page`       | `index`       | `requred` 页面配置项。若为string，则值为页面path。`PageConfig` [详见](#PageConfig)。                         |
+| `entry`      | `src/main.js` | 入口文件 (**注意：** entry文件会自动添加到html内，不需要手动添加)                                            |
+| `template`   | `index.html`  | 模板（`global`）                                                                                             |
+| `title`      | -             | 标题（`global`）                                                                                             |
+| `data`       | -             | 页面数据（`global`），通过`ejs`渲染。`<%= pageHtmlVitePlugin.data %>`                                        |
+| `minify`     | `false`       | 是否压缩html，`MinifyOptions` [详见](https://github.com/terser/html-minifier-terser#options-quick-reference) |
+| `ejsOptions` | -             | `ejs` 配置项, [详见](https://github.com/mde/ejs#options)                                                     |
+| `inject`     | -             | 注入的数据. `InjectOptions` [@see](#InjectOptions)                                                           |
+
+> 🚨 **WARNING:** 入口文件 `entry` 将会自动添加到 html 内，不需要手动写入，请删除。
+
+
+
+### InjectOptions
+
+```typescript
+interface InjectOptions {
+  /**
+   * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
+   */
+  tags?: HtmlTagDescriptor[]
+}
+
+interface HtmlTagDescriptor {
+  tag: string
+  attrs?: Record<string, string>
+  children?: string | HtmlTagDescriptor[]
+  /**
+   * 默认： 'head-prepend'
+   */
+  injectTo?: 'head' | 'body' | 'head-prepend' | 'body-prepend'
+}
+```
+
+| property | type                  | default | description                             |
+| -------- | --------------------- | ------- | --------------------------------------- |
+| `tags`   | `HtmlTagDescriptor[]` | `[]`    | 需要注入的标签列表. `HtmlTagDescriptor` |
 
 ### PageConfig
 
@@ -79,8 +110,8 @@ PageHtml({
 }
 ```
 
-| property | default | description                                                  |
-| -------- | ------- | ------------------------------------------------------------ |
+| property | default | description                                                                                                                     |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `path`   | -       | 单个页面配置项。<br>1. `path` 将作为输出路径<br>2. `path`的值若为string，则为入口文件。<br>`PageOptions` [详见](#PageOptions)。 |
 
 ### PageOptions
@@ -91,15 +122,17 @@ PageHtml({
   template?: string;
   title?: string;
   data?: object;
+  inject?: InjectOptions;
 }
 ```
 
-| property   | default      | description                                                  |
-| ---------- | ------------ | ------------------------------------------------------------ |
-| `entry`    | -            | `required` 页面入口文件                                      |
-| `template` | `index.html` | 模板，默认为全局`template`                                   |
-| `title`    | -            | 标题，默认为全局`title`                                      |
+| property   | default      | description                                                                   |
+| ---------- | ------------ | ----------------------------------------------------------------------------- |
+| `entry`    | -            | `required` 页面入口文件                                                       |
+| `template` | `index.html` | 模板，默认为全局`template`                                                    |
+| `title`    | -            | 标题，默认为全局`title`                                                       |
 | `data`     | -            | 页面数据，通过`ejs`渲染，<br/>默认合并全局`data`，（`lodash.merge` 合并方式） |
+| `inject`   | -            | 注入的数据                                                                    |
 
 ## Examples
 
@@ -236,8 +269,14 @@ export default defineConfig({
       template: 'public/template.html',
       title: 'User Page',
       data: {
+      	injectStyle: `
+      		<link rel="stylesheet" href="https://unpkg.com/normalize.css" />
+      	`,
+      	injectScript: `
+      		<script src="https://unpkg.com/jquery.js"></script>
+      	`,
         styles: '',
-        scripts: ''
+        scripts: ['']
       }
     })
   ]
@@ -245,35 +284,37 @@ export default defineConfig({
 ```
 
 ```html
-// index.html
+<!-- index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-  <%= pageHtmlVitePlugin.title %>
-  </title>
+  <title><%= pageHtmlVitePlugin.title %></title>
 
-  <!-- 引入css文件 -->
-  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>" />
+  <!-- import css -->
+  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles %>" />
+
+  <!-- injectStyle -->
+  <%- pageHtmlVitePlugin.data.injectStyle %>
 </head>
 
 <body>
   <div id="app"></div>
-  <!-- 生产环境 引入js文件 -->
+  <!-- production: import js -->
   <% if(PROD) { %>
+    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
     <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
   <% } else { %>
     <!-- 非生产环境 -->
     <script src="/path/to/development-only-script.js"></script>
   <% } %>
-
-  <!-- 入口文件 -->
-  <script type="module" src="<%= pageHtmlVitePlugin.entry %>"></script>
+	
+  <!-- injectScript -->
+  <%- pageHtmlVitePlugin.data.injectScript %>
 </body>
 </html>
 ```
@@ -320,7 +361,6 @@ The object below is the default data of the render function. The data from `reso
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="src/main.js"></script>
     <% if(PROD) { %>
       <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
       <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
