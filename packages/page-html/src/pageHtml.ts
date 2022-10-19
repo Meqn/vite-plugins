@@ -1,14 +1,20 @@
-import { normalizePath, type PluginOption } from 'vite'
+import {
+  normalizePath,
+  type ResolvedConfig,
+  type PluginOption,
+  resolveConfig
+} from 'vite'
+import history from 'connect-history-api-fallback'
+import { resolve } from 'path'
 
 import { PagesOptions, PageData, PagesData } from './types'
 import {
-  resolve,
   errlog,
-  generatePage,
+  createPage,
+  createRewrites,
   compileHtml,
-  readHtml,
   cleanUrl,
-  getPageName,
+  cleanPageUrl,
   createVirtualHtml,
   removeVirtualHtml
 } from './utils'
@@ -16,23 +22,22 @@ import { name as PLUGIN_NAME } from '../package.json'
 
 type PageListItem = {
   name: string
+  path: string
   template: string
-}
-type PageEntry = {
-  [key: string]: string
 }
 
 export function createPageHtmlPlugin(
   pluginOptions: PagesOptions = {}
 ): PluginOption {
-  let pageEntry: PageEntry = {}
+  let pageInput: Record<string, string> = {}
   let pageList: PageListItem[] = []
-  // EJS模板编译
-  let template: (html: string, data?: PageData) => string | Promise<string>
-  // build模式下临时入口 html
+  let viteConfig: ResolvedConfig
+  // EJS render
+  let renderHtml: (html: string, data?: PageData) => string | Promise<string>
+  // 创建的临时入口 html
   let needRemoveVirtualHtml: string[]
 
-  const pages: PagesData = generatePage(pluginOptions)
+  const pages: PagesData = createPage(pluginOptions)
 
   return {
     name: PLUGIN_NAME,
@@ -40,17 +45,13 @@ export function createPageHtmlPlugin(
     async config(config, { command }) {
       Object.keys(pages).forEach(name => {
         const current: PageData = pages[name]
-        current.rawTemplate = normalizePath(
-          resolve(config.root || '', current.template)
-        )
-        current.template =
+        const template =
           command === 'build'
-            ? normalizePath(resolve(config.root || '', `${current.path}.html`))
-            : current.rawTemplate
-        current.entry = normalizePath(resolve(config.root || '', current.entry))
+            ? normalizePath(resolve(config.root ?? '', `${current.path}.html`))
+            : normalizePath(resolve(config.root ?? '', current.template))
 
-        pageEntry[name] = current.template
-        pageList.push({ name, template: current.template })
+        pageInput[name] = template
+        pageList.push({ name, path: current.path, template: template })
       })
 
       if (command === 'build') {
@@ -58,54 +59,58 @@ export function createPageHtmlPlugin(
       }
 
       if (!config.build?.rollupOptions?.input) {
-        return { build: { rollupOptions: { input: pageEntry } } }
+        return { build: { rollupOptions: { input: pageInput } } }
       } else {
-        config.build.rollupOptions.input = pageEntry
+        config.build.rollupOptions.input = pageInput
       }
     },
 
     configResolved(resolvedConfig) {
+      viteConfig = resolvedConfig
       // resolvedConfig.env = { BASE_URL, MODE, DEV, PROD }
-      template = compileHtml(pluginOptions.ejsOptions, {
-        ...resolvedConfig.env
-      })
+      renderHtml = compileHtml(
+        pluginOptions.ejsOptions,
+        { ...resolvedConfig.env },
+        resolvedConfig
+      )
     },
 
     configureServer(server) {
-      return () => {
-        // serve模式下页面匹配
-        server.middlewares.use(async (req, res, next) => {
-          const url = cleanUrl(decodeURI(req.originalUrl || req.url || ''))
-          const pageName = getPageName(url.split('.html')[0]) || 'index'
-
-          const current = pages[pageName]
-          const pageUrl = pageEntry[pageName] // url匹配页面
-          const pageUrlIndex = pageEntry[`${pageName}Index`] // url匹配的默认首页
-
-          if (pageUrl) {
-            // 匹配的页面
-            const content = await readHtml(pageUrl)
-            return res.end(template(content, current))
-          } else if (!pageUrl && pageUrlIndex) {
-            // 匹配默认页面
-            const content = await readHtml(pageUrlIndex)
-            return res.end(template(content, pages[`${pageName}Index`] || {}))
-          } else {
-            next()
-          }
+      // @description rewrite request url
+      // @see https://github.com/vitejs/vite/blob/main/packages/vite/src/node/server/middlewares/htmlFallback.ts
+      server.middlewares.use(
+        history({
+          verbose: !!process.env.DEBUG && process.env.DEBUG !== 'false',
+          disableDotRule: undefined,
+          htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
+          rewrites: createRewrites(pages, viteConfig.base ?? '/')
         })
-      }
+      )
     },
 
     transformIndexHtml: {
       enforce: 'pre',
-      transform(html: string, ctx) {
-        // 存在html页面
+      async transform(html: string, ctx) {
         try {
-          // const url = decodeURI(ctx.path)?.split('?')[0]
-          const url = cleanUrl(ctx.path)
-          const current = pageList.find(item => item.template.endsWith(url))
-          return template(html, current ? pages[current.name] : undefined)
+          const pageUrl =
+            cleanPageUrl(
+              cleanUrl(decodeURIComponent(ctx.originalUrl ?? ctx.path))
+            ) || 'index'
+          // url 完全匹配 及 过滤 `/index`
+          const current = pageList.find(
+            item => item.path === pageUrl || item.path === `${pageUrl}/index`
+          )
+          if (current) {
+            const pageData = pages[current.name]
+            const _html = await renderHtml(html, pageData)
+            const { tags = [] } = pageData.inject
+            return {
+              html: _html,
+              tags
+            }
+          } else {
+            throw Error(`${ctx.originalUrl ?? ctx.path} not found!`)
+          }
         } catch (e) {
           const msg = (<Error>e).message
           errlog(msg)
