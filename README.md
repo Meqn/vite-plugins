@@ -6,7 +6,7 @@ Vite 插件库
 
 ## 1. vite-plugin-page-html
 
-[English Docs](./packages/page-html/README.md) | [中文文档](./packages/page-html/README.zh_CN.md)
+[English](./packages/page-html/README.md) | [中文](./packages/page-html/README.zh_CN.md)
 
 More flexible MPA (Multi-Page App) support for vite, Similar to the [pages](https://cli.vuejs.org/config/#pages) option of vue-cli.
 
