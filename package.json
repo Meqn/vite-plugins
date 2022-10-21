@@ -1,5 +1,6 @@
 {
   "name": "vite-plugins",
+  "private": true,
   "version": "0.0.1",
   "description": "vite.js plugins",
   "keywords": [
@@ -10,7 +11,9 @@
   "scripts": {
     "preinstall": "node scripts/preinstall",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:pages": "pnpm --filter vite-plugin-page-html run build"
+    "build:page": "pnpm --filter vite-plugin-page-html run build",
+    "build:minify": "pnpm --filter vite-plugin-minify-html run build",
+    "vue2": "pnpm --filter vue2 run dev"
   },
   "gitHooks": {
     "pre-commit": "lint-staged",
@@ -37,6 +40,7 @@
   "devDependencies": {
     "@types/ejs": "^3.1.1",
     "@types/fs-extra": "^9.0.13",
+    "@types/html-minifier-terser": "^7.0.0",
     "@types/lodash": "^4.14.185",
     "@types/node": "^18.7.18",
     "chalk": "4.1.2",
