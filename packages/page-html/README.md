@@ -4,6 +4,10 @@
 
 More flexible MPA (Multi-Page App) support for vite, Similar to the [pages](https://cli.vuejs.org/config/#pages) option of vue-cli.
 
+
+> **Examples:** 【[ React ](https://github.com/Meqn/vite-plugins/tree/main/examples/react)】 - 【[ Vue@3 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue)】 - 【[ Vue@2 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue2)】 - 【[ Svelte ](https://github.com/Meqn/vite-plugins/tree/main/examples/svelte)】
+
+
 ## Features
 
 * 📚 Multi-page/Single-page application support

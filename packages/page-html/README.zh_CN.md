@@ -4,6 +4,10 @@
 
 简单灵活的 MPA（多页面应用）Vite插件。支持html模板和访问路径重写，类似于`vue-cli` 的[pages选项](https://cli.vuejs.org/en/config/#pages) 。
 
+
+> **Examples:** 【[ React ](https://github.com/Meqn/vite-plugins/tree/main/examples/react)】 - 【[ Vue@3 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue)】 - 【[ Vue@2 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue2)】 - 【[ Svelte ](https://github.com/Meqn/vite-plugins/tree/main/examples/svelte)】
+
+
 ## Features
 
 * 📚 单页面(SPA)和多页面(MPA)模式
@@ -13,6 +17,7 @@
 * 🗳 支持 Ejs 模板语法
 * 🔗 支持外部文件库引入 (CDN)
 * 🗜 支持HTML文件压缩能力
+
 
 ## Why ?
 
