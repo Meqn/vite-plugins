@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { camelCase, merge } from 'lodash'
+import { camelCase, merge } from 'lodash-es'
 import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
 import fs from 'fs-extra'

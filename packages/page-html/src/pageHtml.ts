@@ -1,9 +1,4 @@
-import {
-  normalizePath,
-  type ResolvedConfig,
-  type PluginOption,
-  resolveConfig
-} from 'vite'
+import { normalizePath, type ResolvedConfig, type PluginOption } from 'vite'
 import history from 'connect-history-api-fallback'
 import { resolve } from 'path'
 
