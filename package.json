@@ -13,7 +13,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:page": "pnpm --filter vite-plugin-page-html run build",
     "build:minify": "pnpm --filter vite-plugin-minify-html run build",
-    "vue2": "pnpm --filter vue2 run dev"
+    "vue2": "pnpm --filter vue2 run dev",
+    "vue": "pnpm --filter vue run dev",
+    "react": "pnpm --filter react run dev",
+    "svelte": "pnpm --filter svelte run dev"
   },
   "gitHooks": {
     "pre-commit": "lint-staged",
@@ -38,10 +41,12 @@
   },
   "homepage": "https://github.com/Meqn/vite-plugins#readme",
   "devDependencies": {
+    "@types/connect-history-api-fallback": "^1.3.5",
     "@types/ejs": "^3.1.1",
     "@types/fs-extra": "^9.0.13",
     "@types/html-minifier-terser": "^7.0.0",
     "@types/lodash": "^4.14.185",
+    "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.7.18",
     "chalk": "4.1.2",
     "lint-staged": "^13.0.3",
