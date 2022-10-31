@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-page-html",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "More flexible MPA (Multi-Page App) support for vite. 简单灵活的 MPA(多页应用) Vite插件。",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -53,7 +53,8 @@
     "ejs": "^3.1.8",
     "fs-extra": "^10.1.0",
     "html-minifier-terser": "^7.0.0",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "pathe": "^0.3.9"
   },
   "peerDependencies": {
     "vite": ">=2.0.0"

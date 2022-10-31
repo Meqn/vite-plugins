@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from 'pathe'
 import { camelCase, merge } from 'lodash-es'
 import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
@@ -83,10 +83,9 @@ export function compileHtml(
 
       if (data?.entry) {
         // 在这里需要移除 html的 entry: <script type="module">
-        const entry = normalizePath(resolve(viteConfig.root ?? '', data.entry))
         result = result.replace(
           bodyInjectRE,
-          `<script type="module" src="${entry}"></script>\n</body>`
+          `<script type="module" src="${normalizePath(data.entry)}"></script>\n</body>`
         )
       }
 
