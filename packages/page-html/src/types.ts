@@ -8,7 +8,13 @@ interface InjectOptions {
   /**
    * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
    */
-  tags?: HtmlTagDescriptor[]
+  tags?: HtmlTagDescriptor[],
+  
+  /**
+   * @description use for template.
+   * @description multi-page app (MPA) mode, the data will be merged into each page by `lodash.merge`.
+   */
+   data?: Record<string, any>
 }
 
 // single page config
@@ -16,12 +22,10 @@ export interface PageConfig {
   entry: string
   template?: string
   title?: string
-  data?: {
-    [key: keyof any]: any
-  }
   minify?: boolean
   ejsOptions?: EjsOptions
   inject?: InjectOptions
+  [key: string]: any // ⚠️ warning: 新版本待移除, 兼容data
 }
 
 export interface PageData extends PageConfig {
@@ -74,12 +78,6 @@ export interface PagesOptions {
   title?: string
 
   /**
-   * @description use for template. as global inject data
-   * @summary multi-page app (MPA) mode, the data will be merged into each page by `lodash.merge`.
-   */
-  data?: Record<string, any>
-
-  /**
    * @description compressed html file?
    * @type {boolean}
    */
@@ -96,4 +94,7 @@ export interface PagesOptions {
    * @description inject options
    */
   inject?: InjectOptions
+  
+  // ⚠️ warning: 新版本待移除, 兼容 data
+  [key: string]: any
 }

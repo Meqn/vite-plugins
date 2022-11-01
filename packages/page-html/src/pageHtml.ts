@@ -83,6 +83,7 @@ export function createPageHtmlPlugin(
       enforce: 'pre',
       async transform(html: string, ctx) {
         try {
+          // 页面路径, (originalUrl: 'serve模式', path: 'build模式')
           const pageUrl =
             cleanPageUrl(
               cleanUrl(decodeURIComponent(ctx.originalUrl ?? ctx.path))
