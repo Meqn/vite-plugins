@@ -44,10 +44,6 @@ export function createPageHtmlPlugin(
         pageList.push({ name, path: current.path, template: template })
       })
 
-      if (command === 'build') {
-        needRemoveVirtualHtml = await createVirtualHtml(pages, config.root)
-      }
-
       if (!config.build?.rollupOptions?.input) {
         return { build: { rollupOptions: { input: pageInput } } }
       } else {
@@ -55,8 +51,13 @@ export function createPageHtmlPlugin(
       }
     },
 
-    configResolved(resolvedConfig) {
+    async configResolved(resolvedConfig) {
       viteConfig = resolvedConfig
+
+      if (resolvedConfig.command === 'build') {
+        needRemoveVirtualHtml = await createVirtualHtml(pages, resolvedConfig.root)
+      }
+
       // resolvedConfig.env = { BASE_URL, MODE, DEV, PROD }
       renderHtml = compileHtml(
         pluginOptions.ejsOptions,
