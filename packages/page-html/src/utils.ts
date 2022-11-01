@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from 'pathe'
 import { camelCase, merge } from 'lodash-es'
 import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
@@ -83,10 +83,9 @@ export function compileHtml(
 
       if (data?.entry) {
         // 在这里需要移除 html的 entry: <script type="module">
-        const entry = normalizePath(resolve(viteConfig.root ?? '', data.entry))
         result = result.replace(
           bodyInjectRE,
-          `<script type="module" src="${entry}"></script>\n</body>`
+          `<script type="module" src="${resolve(viteConfig.base ?? '/', data.entry)}"></script>\n</body>`
         )
       }
 
@@ -202,20 +201,21 @@ export function createRewrites(pages: PagesData, baseUrl: string) {
 }
 
 // 检测路径是否存在,并记录
-async function checkExistOfPath(p: string): Promise<string> {
+async function checkExistOfPath(p: string, root: string): Promise<string> {
   let result = ''
   try {
     if (p === '.' || p === './') return result
 
-    const paths = p.split('/')
-    if (paths[0] === '.') {
+    const paths = p.split(root)[1]?.split('/')
+    
+    if (paths[0] === '') {
       paths.splice(0, 1)
-    } else if (paths[0] === '') {
-      paths[0] = '/'
     }
 
+    if (paths.length === 0) return ''
+
     for (let i = 0, len = paths.length; i < len; i++) {
-      result = resolve(...paths.slice(0, i + 1))
+      result = resolve(root, ...paths.slice(0, i + 1))
       await fs.access(result, fs.constants.F_OK)
     }
 
@@ -226,10 +226,10 @@ async function checkExistOfPath(p: string): Promise<string> {
   }
 }
 
-async function copyOneFile(src: string, dest: string): Promise<string> {
+async function copyOneFile(src: string, dest: string, root: string): Promise<string> {
   try {
-    const result = await checkExistOfPath(dest)
-    await fs.copy(resolve(src), resolve(dest), {
+    const result = await checkExistOfPath(dest, root)
+    await fs.copy(src, dest, {
       overwrite: false,
       errorOnExist: true
     })
@@ -242,14 +242,16 @@ async function copyOneFile(src: string, dest: string): Promise<string> {
 
 export function createVirtualHtml(
   pages: PagesData,
-  root: string = ''
+  root?: string
 ): Promise<string[]> {
+  const _root = root ?? process.cwd()
   return Promise.all<Promise<string>>(
     Object.keys(pages).map((name: string) => {
       const page = pages[name]
       return copyOneFile(
-        normalizePath(resolve(root, page.template)),
-        normalizePath(resolve(root, `${page.path}.html`))
+        resolve(_root, page.template),
+        resolve(_root, `${page.path}.html`),
+        _root
       )
     })
   )

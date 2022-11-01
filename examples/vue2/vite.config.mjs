@@ -32,7 +32,8 @@ export default defineConfig({
               attrs: {
                 style: 'font-size: 3.6rem; margin-bottom: 2rem'
               },
-              children: 'Hi, Vite + Vue2'
+              children: 'Hi, Vite + Vue2',
+              injectTo: 'body-prepend'
             }]
           }
         }

@@ -1,6 +1,5 @@
-import { normalizePath, type ResolvedConfig, type PluginOption } from 'vite'
-import history from 'connect-history-api-fallback'
-import { resolve } from 'path'
+import type { ResolvedConfig, PluginOption } from 'vite'
+import historyFallback from 'connect-history-api-fallback'
 
 import { PagesOptions, PageData, PagesData } from './types'
 import {
@@ -40,18 +39,10 @@ export function createPageHtmlPlugin(
     async config(config, { command }) {
       Object.keys(pages).forEach(name => {
         const current: PageData = pages[name]
-        const template =
-          command === 'build'
-            ? normalizePath(resolve(config.root ?? '', `${current.path}.html`))
-            : normalizePath(resolve(config.root ?? '', current.template))
-
+        const template = command === 'build' ? `${current.path}.html` : current.template
         pageInput[name] = template
         pageList.push({ name, path: current.path, template: template })
       })
-
-      if (command === 'build') {
-        needRemoveVirtualHtml = await createVirtualHtml(pages, config.root)
-      }
 
       if (!config.build?.rollupOptions?.input) {
         return { build: { rollupOptions: { input: pageInput } } }
@@ -60,8 +51,13 @@ export function createPageHtmlPlugin(
       }
     },
 
-    configResolved(resolvedConfig) {
+    async configResolved(resolvedConfig) {
       viteConfig = resolvedConfig
+
+      if (resolvedConfig.command === 'build') {
+        needRemoveVirtualHtml = await createVirtualHtml(pages, resolvedConfig.root)
+      }
+
       // resolvedConfig.env = { BASE_URL, MODE, DEV, PROD }
       renderHtml = compileHtml(
         pluginOptions.ejsOptions,
@@ -74,7 +70,7 @@ export function createPageHtmlPlugin(
       // @description rewrite request url
       // @see https://github.com/vitejs/vite/blob/main/packages/vite/src/node/server/middlewares/htmlFallback.ts
       server.middlewares.use(
-        history({
+        historyFallback({
           verbose: !!process.env.DEBUG && process.env.DEBUG !== 'false',
           disableDotRule: undefined,
           htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],

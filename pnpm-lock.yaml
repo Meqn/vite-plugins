@@ -128,6 +128,7 @@ importers:
       fs-extra: ^10.1.0
       html-minifier-terser: ^7.0.0
       lodash-es: ^4.17.21
+      pathe: ^0.3.9
     dependencies:
       '@rollup/pluginutils': 4.2.1
       connect-history-api-fallback: 2.0.0
@@ -136,6 +137,7 @@ importers:
       fs-extra: 10.1.0
       html-minifier-terser: 7.0.0
       lodash-es: 4.17.21
+      pathe: 0.3.9
 
 packages:
 
@@ -2049,6 +2051,10 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
     dev: true
+
+  /pathe/0.3.9:
+    resolution: {integrity: sha512-6Y6s0vT112P3jD8dGfuS6r+lpa0qqNrLyHPOwvXMnyNTQaYiwgau2DP3aNDsR13xqtGj7rrPo+jFUATpU6/s+g==}
+    dev: false
 
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
