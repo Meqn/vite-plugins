@@ -12,7 +12,6 @@ interface InjectOptions {
   
   /**
    * @description use for template.
-   * @description multi-page app (MPA) mode, the data will be merged into each page by `lodash.merge`.
    */
    data?: Record<string, any>
 }
@@ -48,8 +47,8 @@ export interface EjsExtendData {
 
 export interface PagesOptions {
   /**
-   * @description page’s configuration.
-   * @summary If string, the value is the page path (SPA)
+   * @description page configuration.
+   * @summary If string, the value is the page path
    * @type {string | { path: PageConfig }}
    */
   page?:
@@ -59,13 +58,13 @@ export interface PagesOptions {
       }
 
   /**
-   * @description entry for the page (SPA)
+   * @description The entry file path
    * @type {string}
    */
   entry?: string
 
   /**
-   * @description the source template. as global html template
+   * @description Specify the folder path of the html file. as global html
    * @type {string}
    */
   template?: string
@@ -91,7 +90,7 @@ export interface PagesOptions {
   ejsOptions?: EjsOptions
 
   /**
-   * @description inject options
+   * @description Data injected into the index.html ejs template
    */
   inject?: InjectOptions
   
