@@ -40,7 +40,6 @@ npm install -D vite-plugin-page-html
 ## Usage
 
 Add EJS tags to html file, such as `index.html`
-在模板html文件中增加 EJS 标签
 
 > Tip: If `entry` is configured in vite.config.js, you need to delete the script tag in the html.
 
