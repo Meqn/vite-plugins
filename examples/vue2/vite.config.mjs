@@ -17,9 +17,11 @@ export default defineConfig({
     pageHtml({
       template: 'public/template.html',
       title: 'Vite + Vue2 App',
-      data: {
-        styles: ['/style.css'],
-        scripts: ['/script.js']
+      inject: {
+        data: {
+          styles: ['/style.css'],
+          scripts: ['/script.js']
+        }
       },
       page: {
         index: './src/main.js',
