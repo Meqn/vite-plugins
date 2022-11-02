@@ -1,9 +1,8 @@
 import { resolve } from 'pathe'
-import { camelCase, merge } from 'lodash-es'
 import { error as errorLog, colors } from 'diy-log'
 import ejs from 'ejs'
 import fs from 'fs-extra'
-import { normalizePath, type ResolvedConfig } from 'vite'
+import { type ResolvedConfig } from 'vite'
 import { createFilter } from '@rollup/pluginutils'
 import {
   type Options as MinifyOptions,
@@ -47,10 +46,6 @@ export function cleanPageUrl(path: string): string {
   return path.replace(/(^\/)|(\/$)/g, '').replace(/\.htm(l)?$/i, '')
 }
 
-export function getPageName(path: string): string {
-  return camelCase(path.split('/').join('_'))
-}
-
 export async function readHtml(path: string): Promise<string> {
   try {
     return await fs.readFile(path, { encoding: 'utf-8' })
@@ -75,17 +70,24 @@ export function compileHtml(
 
   return async function (html: string, data?: PageData): Promise<string> {
     try {
-      const pluginData = {
+      const ejsData = {
         ...extendData,
-        pageHtmlVitePlugin: data || {}
+        pageHtmlVitePlugin: {
+          title: data?.title,
+          entry: data?.entry,
+          data: data?.inject.data
+        }
       }
-      let result = await ejs.render(html, pluginData, ejsOptions)
+      let result = await ejs.render(html, ejsData, ejsOptions)
 
       if (data?.entry) {
         // 在这里需要移除 html的 entry: <script type="module">
         result = result.replace(
           bodyInjectRE,
-          `<script type="module" src="${resolve(viteConfig.base ?? '/', data.entry)}"></script>\n</body>`
+          `<script type="module" src="${resolve(
+            viteConfig.base ?? '/',
+            data.entry
+          )}"></script>\n</body>`
         )
       }
 
@@ -94,6 +96,22 @@ export function compileHtml(
       errlog((<Error>e).message)
       return ''
     }
+  }
+}
+
+/**
+ * 通过页面路径生成页面名称 (小驼峰格式化)
+ * @param path 路径
+ * @returns 
+ */
+ export function createPageName(path: string): string {
+  const paths = path.split('/')
+  if (paths.length > 1) {
+    return paths.reduce((res, p) => {
+      return res === '' ? p : (res + p.charAt(0).toUpperCase() + p.slice(1))
+    }, '')
+  } else {
+    return path
   }
 }
 
@@ -114,12 +132,22 @@ export function createPage(options: PagesOptions = {}): PagesData {
     inject = {}
   } = options
 
-  const defaults = { entry, template, title, data, minify, ejsOptions, inject }
+  const defaults = {
+    entry,
+    template,
+    title,
+    minify,
+    ejsOptions,
+    inject: {
+      data: inject.data ?? data, // ⚠️ warning: 新版本待移除 data
+      tags: inject.tags ?? []
+    }
+  }
   const pages: Record<string, any> = {}
 
   if (typeof page === 'string') {
     const _page = cleanPageUrl(page)
-    const pageName = getPageName(_page)
+    const pageName = createPageName(_page)
     pages[pageName] = {
       ...defaults,
       path: _page
@@ -128,7 +156,7 @@ export function createPage(options: PagesOptions = {}): PagesData {
     Object.keys(page).forEach(name => {
       const pageItem = page[name]
       const _page = cleanPageUrl(name)
-      const pageName = getPageName(_page)
+      const pageName = createPageName(_page)
 
       if (!pageItem || (typeof pageItem !== 'string' && !pageItem.entry)) {
         errlog(`not found ${name} page`)
@@ -142,9 +170,17 @@ export function createPage(options: PagesOptions = {}): PagesData {
           entry: pageItem
         }
       } else {
-        pages[pageName] = merge({}, defaults, {
-          ...pageItem,
-          path: _page
+        // ⚠️ warning: 新版本待移除 data
+        const {
+          inject: { data: injectData, tags: injectTags }
+        } = defaults
+
+        pages[pageName] = Object.assign({}, defaults, pageItem, {
+          path: _page,
+          inject: {
+            data: pageItem.inject?.data ?? pageItem.data ?? injectData,
+            tags: pageItem.inject?.tags ?? injectTags
+          }
         })
       }
     })
@@ -206,8 +242,8 @@ async function checkExistOfPath(p: string, root: string): Promise<string> {
   try {
     if (p === '.' || p === './') return result
 
-    const paths = p.split(root)[1]?.split('/')
-    
+    const paths = p.replace(root, '').split('/')
+
     if (paths[0] === '') {
       paths.splice(0, 1)
     }
@@ -226,7 +262,11 @@ async function checkExistOfPath(p: string, root: string): Promise<string> {
   }
 }
 
-async function copyOneFile(src: string, dest: string, root: string): Promise<string> {
+async function copyOneFile(
+  src: string,
+  dest: string,
+  root: string
+): Promise<string> {
   try {
     const result = await checkExistOfPath(dest, root)
     await fs.copy(src, dest, {

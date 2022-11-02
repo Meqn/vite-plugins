@@ -2,7 +2,7 @@
 
 **English** | [中文](https://github.com/Meqn/vite-plugins/blob/main/packages/page-html/README.zh_CN.md)
 
-More flexible MPA (Multi-Page App) support for vite, Similar to the [pages](https://cli.vuejs.org/config/#pages) option of vue-cli.
+A simple and flexible vite plugin for processing html. Support EJS template syntax and multi-page configuration, can specify html file directory and access URL, Similar to the [pages](https://cli.vuejs.org/config/#pages) option of vue-cli.
 
 
 > **Examples:** 【[ React ](https://github.com/Meqn/vite-plugins/tree/main/examples/react)】 - 【[ Vue@3 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue)】 - 【[ Vue@2 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue2)】 - 【[ Svelte ](https://github.com/Meqn/vite-plugins/tree/main/examples/svelte)】
@@ -26,6 +26,7 @@ If you put html in other directory, you need to add useless directories when acc
 
 Although there are plug-ins that can solve these problems, but after using it, it can not satisfy my project, so I developed this plug-in `vite-plugin-page-html`.
 
+> Added: The vite-plugin-html plugin was not found while developing.
 
 ## Install
 
@@ -38,20 +39,181 @@ npm install -D vite-plugin-page-html
 
 ## Usage
 
+Add EJS tags to html file, such as `index.html`
+在模板html文件中增加 EJS 标签
+
+> Tip: If `entry` is configured in vite.config.js, you need to delete the script tag in the html.
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telphone=no">
+    <title><%= pageHtmlVitePlugin.title %></title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link rel="shortcut icon" href="<%= BASE_URL %>favicon.ico" type="image/x-icon">
+    <!-- injectStyle -->
+    <%- pageHtmlVitePlugin.data.injectStyle %>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <% if(DEV) { %>
+    <script src="/path/development-only-script.js"></script>
+    <% } %>
+
+    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
+    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
+
+    <!-- injectScript -->
+    <%- pageHtmlVitePlugin.data.injectScript %>
+  </body>
+</html>
+```
+
+### SPA
+
+Single-page application configuration, in `vite.config.js` you can configure access url, entry and template.
+
 ```js
 // vite.config.js
 import PageHtml from 'vite-plugin-page-html'
 
-// @see https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     // ... plugins
-    PageHtml(/* Options */)
+    PageHtml({
+      /**
+       * Visit URL. e.g. `page/about`
+       * @default index.html
+       */
+      page: 'index',
+      /**
+       * The entry file, after configuration, you will need to delete the script tag in index.html
+       */
+      entry: 'src/main.js',
+      /**
+       * Specify the folder path of the html file
+       * @default index.html 
+       */
+      template: 'src/index.html',
+      title: 'Vue App',
+      minify: false,
+      /**
+       * Data injected into the index.html ejs template
+       */
+      inject: {
+        data: {
+          injectStyle: `<script src="./inject.css"></script>`,
+          injectScript: `<script src="./inject.js"></script>`,
+          scripts: ['https://cdnjs.com/lodash/index.js']
+        },
+        tags: [
+          {
+            injectTo: 'body-prepend',
+            tag: 'div',
+            attrs: {
+              id: 'inject',
+            }
+          }
+        ]
+      }
+    })
   ]
 })
 ```
 
-## Options
+
+### MPA
+
+Multi-page application configuration, you can specify the access URL through the `key` of the `page` object, other configurations are the same as single page.
+
+```js
+// vite.config.js
+import PageHtml from 'vite-plugin-page-html'
+
+export default defineConfig({
+  plugins: [
+    // ... plugins
+    PageHtml({
+      template: 'src/index.html',
+      minify: true,
+      inject: {
+        data: {
+          injectStyle: `<script src="./inject.css"></script>`
+        }
+        tags: [
+          {
+            injectTo: 'body-prepend',
+            tag: 'div',
+            attrs: {
+              id: 'inject',
+            }
+          }
+        ]
+      },
+      page: {
+        index: 'src/main.js',
+        about: {
+          entry: 'src/about/main.js',
+          title: 'About Page',
+        },
+        'product/list': {
+          entry: 'src/product/main.js',
+          template: 'src/product/index.html', 
+          title: 'Product list',
+          /**
+           * Override global inject data
+           */
+          inject: {
+            data: {
+              injectStyle: `<script src="./product.css"></script>`
+            },
+            tags: []
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+After starting the dev server, browse:
+
+- http://localhost:3000/index.html  
+  Use `src/index.html` as the template and `src/main.js` as the entry.
+- http://localhost:3000/about.html  
+  Use `src/index.html` as the template and `src/about/main.js` as the entry.
+- http://localhost:3000/product/list.html  
+  Use `src/product/index.html` as the template and `src/product/main.js` as the entry.
+
+The URL structure after the project is constructed is the same as that during development:
+
+```
+├── dist
+│   ├── assets
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── about.html
+│   ├── product
+│   │   └── list.html
+│   └──
+```
+
+
+## Configuration
+
+```js
+PageHtml(/* Options */)
+```
+
+### Options
 
 ```typescript
 PageHtml({
@@ -59,7 +221,6 @@ PageHtml({
   entry?: string;
   template?: string;
   title?: string;
-  data?: object;
   minify?: boolean | MinifyOptions;
   ejsOptions?: EjsOptions;
   inject?: InjectOptions;
@@ -70,12 +231,11 @@ PageHtml({
 | ------------ | ------------- | --------------------------------------------------------------------------------------------------------------- |
 | `page`       | `index`       | `requred` page configuration. If string, the value is the page path.<br>`PageConfig` [@See](#PageConfig)。      |
 | `entry`      | `src/main.js` | entry file path. <br/>**WARNING:** The `entry` entry will be automatically written to html.                     |
-| `template`   | `index.html`  | template file（`global`）                                                                                       |
+| `template`   | `index.html`  | template file path.（`global`）                                                                                 |
 | `title`      | -             | page title（`global`）                                                                                          |
-| `data`       | -             | page data（`global`）<br>Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>`                                 |
 | `minify`     | `false`       | Compressed file. `MinifyOptions` [@See](https://github.com/terser/html-minifier-terser#options-quick-reference) |
 | `ejsOptions` | -             | `ejs` options, [@See](https://github.com/mde/ejs#options)                                                       |
-| `inject`     | -             | Data injected into HTML. `InjectOptions` [@see](#InjectOptions)                                                 |
+| `inject`     | -             | Data injected into HTML. (`global`) `InjectOptions` [@see](#InjectOptions)                                      |
 
 > 🚨 **WARNING:** The `entry` file has been written to html, you don't need to write it again.
 
@@ -88,7 +248,11 @@ interface InjectOptions {
   /**
    * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
    */
-  tags?: HtmlTagDescriptor[]
+  tags?: HtmlTagDescriptor[],
+  /**
+   * page data. Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>`
+   */
+  data?: Record<string, any>
 }
 
 interface HtmlTagDescriptor {
@@ -102,9 +266,10 @@ interface HtmlTagDescriptor {
 }
 ```
 
-| property | type                  | default | description                                 |
-| -------- | --------------------- | ------- | ------------------------------------------- |
-| `tags`   | `HtmlTagDescriptor[]` | `[]`    | List of tags to inject. `HtmlTagDescriptor` |
+| property | type                  | default | description                                                          |
+| -------- | --------------------- | ------- | -------------------------------------------------------------------- |
+| `tags`   | `HtmlTagDescriptor[]` | `[]`    | List of tags to inject. `HtmlTagDescriptor`                          |
+| `data`   | `object`              | -       | page data <br>Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>` |
 
 ### PageConfig
 
@@ -125,216 +290,16 @@ interface HtmlTagDescriptor {
   entry: string;
   template?: string;
   title?: string;
-  data?: object;
   inject?: InjectOptions;
 }
 ```
 
-| property   | default      | description                                                                          |
-| ---------- | ------------ | ------------------------------------------------------------------------------------ |
-| `entry`    | -            | `required` entry file                                                                |
-| `template` | `index.html` | template. Defaults is global `template`                                              |
-| `title`    | -            | title. Defaults is global `title`                                                    |
-| `data`     | -            | page data, Rendering via `ejs`<br/>Merge global `data` by default via `lodash.merge` |
-| `inject`   | -            | Data injected into HTML. `InjectOptions` [@see](#InjectOptions)                      |
-
-## Examples
-
-### Single-page App (SPA)
-
-Single-page App configuration, Can specify access paths, entry and template.
-
-```js
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      page: 'user/index',
-      entry: 'src/main.js'
-      template: 'public/template.html',
-      title: 'User Page',
-      data: {},
-      minify: false,
-      ejsOptions: {}
-    })
-  ]
-})
-```
-
-Starting the dev server, browse: `http://localhost:3000/user/index.html`
-
-### Multi-page App (MPA)
-
-Multi-page App configuration, Can specify access paths, entry and template.
-
-> In multi-page mode, the data of each page will be automatically merged with the global `{ template, title, data }` . Merged via `lodash.merge`.
-
-```js
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      ejsOptions: {},
-      minify: false,
-      data: {},
-      title: 'Vite App',
-      page: {
-        'index': 'src/main.js',
-        'about': {
-          entry: 'src/about/main.js',
-          template: 'index.html',
-          title: 'about Page'
-        },
-        'product/index': {
-          entry: 'src/product/main.js',
-          template: 'src/product/index.html',
-          title: 'Product Page'
-        },
-        'product/virtual': {
-          entry: 'src/product/virtual/main.js',
-          template: 'src/product/index.html',
-          title: 'Virtual Product Page'
-        },
-        'product/real': {
-          entry: 'src/product/real/main.js',
-          template: 'src/product/index.html',
-          title: 'Real Product Page'
-        }
-      }
-    })
-  ]
-})
-```
-
-After starting the dev server, browse:
-
-- http://localhost:3000/index.html  
-  Use `index.html` as the template and `src/main.js` as the entry.
-- http://localhost:3000/about.html  
-  Use `index.html` as the template and `src/about/main.js` as the entry.
-- http://localhost:3000/product/index.html  
-  Use `src/product/index.html` as the template and `src/product/main.js` as the entry.
-- http://localhost:3000/product/virtual.html  
-  Use `src/product/index.html` as the template and `src/product/virtual/main.js` as the entry.
-- http://localhost:3000/product/real.html  
-  Use `src/product/index.html` as the template and `src/product/real/main.js` as the entry.
-
-The URL structure after the project is constructed is the same as that during development:
-
-```
-├── dist
-│   ├── assets
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── about.html
-│   ├── product
-│   │   ├── index.html
-│   │   ├── real.html
-│   │   └── virtual.html
-│   └──
-```
-
-For `MPA`, The `key` of `page` and the `build.rollupOptions.input` are associated with the following rules:
-
-```js
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      input: {
-        'index': `index.html`,
-        'about': `index.html`,
-        'product/index': `src/product/index.html`,
-        'product/virtual': `src/product/index.html`,
-        'product/real': `src/product/index.html`,
-      }
-    }
-  } 
-})
-```
-
-## EJS render
-
-`html` supports `ejs` syntax. Default data and custom data are automatically injected when each page is rendered.
-
-1. Default data is written via `<%= BASE_URL %>` .
-2. Custom data is written via `<%= pageHtmlVitePlugin.title %>`.
-
-  > Custom data contains `{ entry, title, data } `
-
-```js
-// vite.config.js
-
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      page: 'user/index',
-      entry: 'src/main.js'
-      template: 'public/template.html',
-      title: 'User Page',
-      data: {
-      	injectStyle: `
-      		<link rel="stylesheet" href="https://unpkg.com/normalize.css" />
-      	`,
-      	injectScript: `
-      		<script src="https://unpkg.com/jquery.js"></script>
-      	`,
-        styles: '',
-        scripts: ['']
-      }
-    })
-  ]
-})
-```
-
-```html
-<!-- index.html -->
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= pageHtmlVitePlugin.title %></title>
-
-  <!-- import css -->
-  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles %>" />
-
-  <!-- injectStyle -->
-  <%- pageHtmlVitePlugin.data.injectStyle %>
-</head>
-
-<body>
-  <div id="app"></div>
-  <!-- production: import js -->
-  <% if(PROD) { %>
-    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
-    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
-  <% } else { %>
-    <!-- 非生产环境 -->
-    <script src="/path/to/development-only-script.js"></script>
-  <% } %>
-	
-  <!-- injectScript -->
-  <%- pageHtmlVitePlugin.data.injectScript %>
-</body>
-</html>
-```
-
-### Default data
-
-The object below is the default data of the render function. The data from `resolvedConfig.env`
-
-```js
-{
-  BASE_URL: '/',
-  MODE: 'development',
-  DEV: true,
-  PROD: false
-}
-```
+| property   | default      | description                                                                                                              |
+| ---------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `entry`    | -            | `required` entry file                                                                                                    |
+| `template` | `index.html` | template. Defaults is global `template`                                                                                  |
+| `title`    | -            | title. Defaults is global `title`                                                                                        |
+| `inject`   | -            | Data injected into HTML. `InjectOptions` [@see](#InjectOptions) <br/>Merge global `inject` by default via `lodash.merge` |
 
 
 
@@ -394,15 +359,17 @@ export default defineConfig(({ command, mode }) => {
         },
       },
       template: 'public/template.html',
-      data: {
-        styles: [
-          'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/theme-chalk/index.css'
-        ],
-        scripts: [
-          'https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.min.js',
-          'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/index.js',
-          'https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js'
-        ]
+      inject: {
+        data: {
+          styles: [
+            'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/theme-chalk/index.css'
+          ],
+          scripts: [
+            'https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.min.js',
+            'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/index.js',
+            'https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js'
+          ]
+        }
       }
     })
   ],

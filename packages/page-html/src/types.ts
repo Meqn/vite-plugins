@@ -8,7 +8,12 @@ interface InjectOptions {
   /**
    * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
    */
-  tags?: HtmlTagDescriptor[]
+  tags?: HtmlTagDescriptor[],
+  
+  /**
+   * @description use for template.
+   */
+   data?: Record<string, any>
 }
 
 // single page config
@@ -16,12 +21,10 @@ export interface PageConfig {
   entry: string
   template?: string
   title?: string
-  data?: {
-    [key: keyof any]: any
-  }
   minify?: boolean
   ejsOptions?: EjsOptions
   inject?: InjectOptions
+  [key: string]: any // ⚠️ warning: 新版本待移除, 兼容data
 }
 
 export interface PageData extends PageConfig {
@@ -44,8 +47,8 @@ export interface EjsExtendData {
 
 export interface PagesOptions {
   /**
-   * @description page’s configuration.
-   * @summary If string, the value is the page path (SPA)
+   * @description page configuration.
+   * @summary If string, the value is the page path
    * @type {string | { path: PageConfig }}
    */
   page?:
@@ -55,13 +58,13 @@ export interface PagesOptions {
       }
 
   /**
-   * @description entry for the page (SPA)
+   * @description The entry file path
    * @type {string}
    */
   entry?: string
 
   /**
-   * @description the source template. as global html template
+   * @description Specify the folder path of the html file. as global html
    * @type {string}
    */
   template?: string
@@ -72,12 +75,6 @@ export interface PagesOptions {
    * @type {string}
    */
   title?: string
-
-  /**
-   * @description use for template. as global inject data
-   * @summary multi-page app (MPA) mode, the data will be merged into each page by `lodash.merge`.
-   */
-  data?: Record<string, any>
 
   /**
    * @description compressed html file?
@@ -93,7 +90,10 @@ export interface PagesOptions {
   ejsOptions?: EjsOptions
 
   /**
-   * @description inject options
+   * @description Data injected into the index.html ejs template
    */
   inject?: InjectOptions
+  
+  // ⚠️ warning: 新版本待移除, 兼容 data
+  [key: string]: any
 }
