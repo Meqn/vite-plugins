@@ -2,7 +2,8 @@
 
 **中文** | [English](https://github.com/Meqn/vite-plugins/blob/main/packages/page-html/README.md)
 
-简单灵活的 MPA（多页面应用）Vite插件。支持html模板和访问路径重写，类似于`vue-cli` 的[pages选项](https://cli.vuejs.org/en/config/#pages) 。
+
+简单灵活的处理html的Vite插件。支持EJS模板语法和多页面配置，可指定html文件目录及访问路径，类似于`vue-cli` 的[pages选项](https://cli.vuejs.org/en/config/#pages) 。
 
 
 > **Examples:** 【[ React ](https://github.com/Meqn/vite-plugins/tree/main/examples/react)】 - 【[ Vue@3 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue)】 - 【[ Vue@2 ](https://github.com/Meqn/vite-plugins/tree/main/examples/vue2)】 - 【[ Svelte ](https://github.com/Meqn/vite-plugins/tree/main/examples/svelte)】
@@ -27,6 +28,7 @@
 
 虽然目前也有一些Vite插件能够解决这些问题，但使用后并不能满足我之前的项目，所以便有了这个插件 `vite-plugin-page-html`。
 
+> 补充：由于开发时的目标是多页面的配置，当时未发现 vite-plugin-html 插件。
 
 ## Install
 
@@ -39,20 +41,179 @@ npm install vite-plugin-page-html -D
 
 ## Usage
 
+在 html 文件中增加 `EJS` 标签, 比如 `index.html` :
+
+> 提示：若在 vite.config.js 中配置了 entry ，则应删除 html模板 内的`script`标签。
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telphone=no">
+    <title><%= pageHtmlVitePlugin.title %></title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link rel="shortcut icon" href="<%= BASE_URL %>favicon.ico" type="image/x-icon">
+    <!-- injectStyle -->
+    <%- pageHtmlVitePlugin.data.injectStyle %>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <% if(DEV) { %>
+    <script src="/path/development-only-script.js"></script>
+    <% } %>
+
+    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
+    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
+    <% } %>
+
+    <!-- injectScript -->
+    <%- pageHtmlVitePlugin.data.injectScript %>
+  </body>
+</html>
+```
+
+### SPA
+
+单页应用配置，在 `vite.config.js` 中可随意指定 访问路径(`page`)、入口(`entry`)和 html模板(`template`)文件。
+
 ```js
 // vite.config.js
 import PageHtml from 'vite-plugin-page-html'
 
-// @see https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     // ... plugins
-    PageHtml(/* Options */)
+    PageHtml({
+      /**
+       * 指定访问地址. e.g. `page/about`
+       * @default index.html
+       */
+      page: 'index',
+      /**
+       * 入口文件位置, 配置后将需要删除`index.html`内原有的 script 标签
+       */
+      entry: 'src/main.js',
+      /**
+       * 指定 html模板文件的位置
+       * @default index.html 
+       */
+      template: 'src/index.html',
+      title: 'Vue App',
+      minify: false,
+      /**
+       * 注入 index.html ejs 模版的数据
+       */
+      inject: {
+        data: {
+          injectStyle: `<script src="./inject.css"></script>`,
+          injectScript: `<script src="./inject.js"></script>`,
+          scripts: ['https://cdnjs.com/lodash/index.js']
+        },
+        tags: [
+          {
+            injectTo: 'body-prepend',
+            tag: 'div',
+            attrs: {
+              id: 'inject',
+            }
+          }
+        ]
+      }
+    })
   ]
 })
 ```
 
-## Options
+
+### MPA
+
+多页应用配置，可通过配置 `page` 对象的 `key` 来指定访问路径，其他同 单页配置。
+
+```js
+// vite.config.js
+import PageHtml from 'vite-plugin-page-html'
+
+export default defineConfig({
+  plugins: [
+    // ... plugins
+    PageHtml({
+      template: 'src/index.html',
+      minify: true,
+      inject: {
+        data: {
+          injectStyle: `<script src="./inject.css"></script>`
+        }
+        tags: [
+          {
+            injectTo: 'body-prepend',
+            tag: 'div',
+            attrs: {
+              id: 'inject',
+            }
+          }
+        ]
+      },
+      page: {
+        index: 'src/main.js',
+        about: {
+          entry: 'src/about/main.js',
+          title: 'About Page',
+        },
+        'product/list': {
+          entry: 'src/product/main.js',
+          template: 'src/product/index.html', 
+          title: 'Product list',
+          /**
+           * 将覆盖全局的 inject 数据
+           */
+          inject: {
+            data: {
+              injectStyle: `<script src="./product.css"></script>`
+            },
+            tags: []
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+启动 dev serve 服务，并打开浏览器：
+
+- http://localhost:3000/index.html  
+  Use `src/index.html` as the template and `src/main.js` as the entry.
+- http://localhost:3000/about.html  
+  Use `src/index.html` as the template and `src/about/main.js` as the entry.
+- http://localhost:3000/product/list.html  
+  Use `src/product/index.html` as the template and `src/product/main.js` as the entry.
+
+项目构建后的目录结构与开发保持一致：
+
+```
+├── dist
+│   ├── assets
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── about.html
+│   ├── product
+│   │   └── list.html
+│   └──
+```
+
+## Configuration
+
+```js
+PageHtml(/* Options */)
+```
+
+### Options
 
 ```typescript
 PageHtml({
@@ -70,13 +231,12 @@ PageHtml({
 | property     | default       | description                                                                                                  |
 | ------------ | ------------- | ------------------------------------------------------------------------------------------------------------ |
 | `page`       | `index`       | `requred` 页面配置项。若为string，则值为页面path。`PageConfig` [详见](#PageConfig)。                         |
-| `entry`      | `src/main.js` | 入口文件 (**注意：** entry文件会自动添加到html内，不需要手动添加)                                            |
-| `template`   | `index.html`  | 模板（`global`）                                                                                             |
-| `title`      | -             | 标题（`global`）                                                                                             |
-| `data`       | -             | 页面数据（`global`），通过`ejs`渲染。`<%= pageHtmlVitePlugin.data %>`                                        |
+| `entry`      | `src/main.js` | 入口文件路径 (**注意：** entry文件会自动添加到html内，不需要手动添加)                                        |
+| `template`   | `index.html`  | html文件路径（`global`）                                                                                     |
+| `title`      | -             | 页面标题（`global`）                                                                                         |
 | `minify`     | `false`       | 是否压缩html，`MinifyOptions` [详见](https://github.com/terser/html-minifier-terser#options-quick-reference) |
 | `ejsOptions` | -             | `ejs` 配置项, [详见](https://github.com/mde/ejs#options)                                                     |
-| `inject`     | -             | 注入的数据. `InjectOptions` [@see](#InjectOptions)                                                           |
+| `inject`     | -             | 需要注入 html ejs模板的数据. `InjectOptions` [@see](#InjectOptions)                                          |
 
 > 🚨 **WARNING:** 入口文件 `entry` 将会自动添加到 html 内，不需要手动写入，请删除。
 
@@ -103,9 +263,10 @@ interface HtmlTagDescriptor {
 }
 ```
 
-| property | type                  | default | description                             |
-| -------- | --------------------- | ------- | --------------------------------------- |
-| `tags`   | `HtmlTagDescriptor[]` | `[]`    | 需要注入的标签列表. `HtmlTagDescriptor` |
+| property | type                  | default | description                                                                     |
+| -------- | --------------------- | ------- | ------------------------------------------------------------------------------- |
+| `tags`   | `HtmlTagDescriptor[]` | `[]`    | 需要注入的标签列表. `HtmlTagDescriptor`                                         |
+| `data`   | `object`              | -       | 需要注入的页面数据（`global`），通过`ejs`渲染。`<%= pageHtmlVitePlugin.data %>` |
 
 ### PageConfig
 
@@ -131,211 +292,12 @@ interface HtmlTagDescriptor {
 }
 ```
 
-| property   | default      | description                                                                   |
-| ---------- | ------------ | ----------------------------------------------------------------------------- |
-| `entry`    | -            | `required` 页面入口文件                                                       |
-| `template` | `index.html` | 模板，默认为全局`template`                                                    |
-| `title`    | -            | 标题，默认为全局`title`                                                       |
-| `data`     | -            | 页面数据，通过`ejs`渲染，<br/>默认合并全局`data`，（`lodash.merge` 合并方式） |
-| `inject`   | -            | 注入的数据                                                                    |
-
-## Examples
-
-### Single-page App (SPA)
-
-单页配置，可随意指定访问路径、入口和模板
-
-```js
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      page: 'user/index',
-      entry: 'src/main.js'
-      template: 'public/template.html',
-      title: 'User Page',
-      data: {},
-      minify: false,
-      ejsOptions: {}
-    })
-  ]
-})
-```
-
-Starting the dev server, browse: `http://localhost:3000/user/index.html`
-
-### Multi-page App (MPA)
-
-多页配置，可随意指定访问路径、入口和模板
-
-> 注意，多页面模式下，每个页面的配置数据会自动合并全局的 `{ template, title, data }` 数据。`data` 通过 `lodash.merge` 方式合并。
-
-```js
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      ejsOptions: {},
-      minify: false,
-      data: {},
-      title: 'Vite App',
-      page: {
-        'index': 'src/main.js',
-        'about': {
-          entry: 'src/about/main.js',
-          template: 'index.html',
-          title: 'about Page'
-        },
-        'product/index': {
-          entry: 'src/product/main.js',
-          template: 'src/product/index.html',
-          title: 'Product Page'
-        },
-        'product/virtual': {
-          entry: 'src/product/virtual/main.js',
-          template: 'src/product/index.html',
-          title: 'Virtual Product Page'
-        },
-        'product/real': {
-          entry: 'src/product/real/main.js',
-          template: 'src/product/index.html',
-          title: 'Real Product Page'
-        }
-      }
-    })
-  ]
-})
-```
-
-After starting the dev server, browse:
-
-- http://localhost:3000/index.html  
-  Use `index.html` as the template and `src/main.js` as the entry.
-- http://localhost:3000/about.html  
-  Use `index.html` as the template and `src/about/main.js` as the entry.
-- http://localhost:3000/product/index.html  
-  Use `src/product/index.html` as the template and `src/product/main.js` as the entry.
-- http://localhost:3000/product/virtual.html  
-  Use `src/product/index.html` as the template and `src/product/virtual/main.js` as the entry.
-- http://localhost:3000/product/real.html  
-  Use `src/product/index.html` as the template and `src/product/real/main.js` as the entry.
-
-项目构建后的URL结构与开发时相同：
-
-```
-├── dist
-│   ├── assets
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── about.html
-│   ├── product
-│   │   ├── index.html
-│   │   ├── real.html
-│   │   └── virtual.html
-│   └──
-```
-
- `MPA` 模式下，`page` 的 `key` 和 `build.rollupOptions.input` 与之对应：
-
-```js
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      input: {
-        'index': `index.html`,
-        'about': `index.html`,
-        'product/index': `src/product/index.html`,
-        'product/virtual': `src/product/index.html`,
-        'product/real': `src/product/index.html`,
-      }
-    }
-  } 
-})
-```
-
-## EJS render
-
-`html` 文件支持 `ejs` 模板语法。每个页面在渲染时都会自动注入 默认数据 和 自定义数据。
-
-1. 默认数据 通过 `<%= BASE_URL %>` 方式写入。
-2. 自定义数据 通过 `<%= pageHtmlVitePlugin.title %>` 方式写入。
-	
-	> 自定义数据包含 `{ entry, title, data } `
-
-```js
-// vite.config.js
-
-export default defineConfig({
-  plugins: [
-    // ... plugins
-    PageHtml({
-      page: 'user/index',
-      entry: 'src/main.js'
-      template: 'public/template.html',
-      title: 'User Page',
-      data: {
-      	injectStyle: `
-      		<link rel="stylesheet" href="https://unpkg.com/normalize.css" />
-      	`,
-      	injectScript: `
-      		<script src="https://unpkg.com/jquery.js"></script>
-      	`,
-        styles: '',
-        scripts: ['']
-      }
-    })
-  ]
-})
-```
-
-```html
-<!-- index.html -->
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= pageHtmlVitePlugin.title %></title>
-
-  <!-- import css -->
-  <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles %>" />
-
-  <!-- injectStyle -->
-  <%- pageHtmlVitePlugin.data.injectStyle %>
-</head>
-
-<body>
-  <div id="app"></div>
-  <!-- production: import js -->
-  <% if(PROD) { %>
-    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
-    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
-  <% } else { %>
-    <!-- 非生产环境 -->
-    <script src="/path/to/development-only-script.js"></script>
-  <% } %>
-	
-  <!-- injectScript -->
-  <%- pageHtmlVitePlugin.data.injectScript %>
-</body>
-</html>
-```
-
-### Default data
-
-The object below is the default data of the render function. The data from `resolvedConfig.env`
-
-```js
-{
-  BASE_URL: '/',
-  MODE: 'development',
-  DEV: true,
-  PROD: false
-}
-```
+| property   | default      | description                                                         |
+| ---------- | ------------ | ------------------------------------------------------------------- |
+| `entry`    | -            | `required` 页面入口文件                                             |
+| `template` | `index.html` | 模板，默认为全局`template`                                          |
+| `title`    | -            | 标题，默认为全局`title`                                             |
+| `inject`   | -            | 需要注入 html ejs模板的数据. `InjectOptions` [@see](#InjectOptions) |
 
 
 
