@@ -41,9 +41,9 @@ npm install vite-plugin-page-html -D
 
 ## Usage
 
-在 html 文件中增加 `EJS` 标签, 比如 `index.html` :
+在 html 中增加 `EJS` 标签, 比如 `index.html` :
 
-> 提示：若在 vite.config.js 中配置了 entry ，则应删除 html模板 内的`script`标签。
+> 提示：若在 vite.config.js 中配置了 entry ，则应删除 html模板 内的入口`script`标签。
 
 ```html
 <!DOCTYPE html>
@@ -133,7 +133,7 @@ export default defineConfig({
 
 ### MPA
 
-多页应用配置，可通过配置 `page` 对象的 `key` 来指定访问路径，其他同 单页配置。
+多页应用配置，可通过配置 `page` 对象的 `key` 来指定访问路径，其他配置同 单页应用。
 
 ```js
 // vite.config.js
@@ -221,7 +221,6 @@ PageHtml({
   entry?: string;
   template?: string;
   title?: string;
-  data?: object;
   minify?: boolean | MinifyOptions;
   ejsOptions?: EjsOptions;
   inject?: InjectOptions
@@ -276,9 +275,9 @@ interface HtmlTagDescriptor {
 }
 ```
 
-| property | default | description                                                                                                                     |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `path`   | -       | 单个页面配置项。<br>1. `path` 将作为输出路径<br>2. `path`的值若为string，则为入口文件。<br>`PageOptions` [详见](#PageOptions)。 |
+| property | default | description                                                                                                                         |
+| -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `path`   | -       | 单个页面配置项。<br>1. `path` 将作为输出路径<br>2. `path`的值若为string，则为入口文件路径。<br>`PageOptions` [详见](#PageOptions)。 |
 
 ### PageOptions
 
@@ -287,14 +286,13 @@ interface HtmlTagDescriptor {
   entry: string;
   template?: string;
   title?: string;
-  data?: object;
   inject?: InjectOptions;
 }
 ```
 
 | property   | default      | description                                                         |
 | ---------- | ------------ | ------------------------------------------------------------------- |
-| `entry`    | -            | `required` 页面入口文件                                             |
+| `entry`    | -            | `required` 页面入口文件路径                                         |
 | `template` | `index.html` | 模板，默认为全局`template`                                          |
 | `title`    | -            | 标题，默认为全局`title`                                             |
 | `inject`   | -            | 需要注入 html ejs模板的数据. `InjectOptions` [@see](#InjectOptions) |

@@ -39,7 +39,7 @@ npm install -D vite-plugin-page-html
 
 ## Usage
 
-Add EJS tags to html file, such as `index.html`
+Add EJS tags to html, such as `index.html`
 
 > Tip: If `entry` is configured in vite.config.js, you need to delete the script tag in the html.
 
@@ -293,12 +293,12 @@ interface HtmlTagDescriptor {
 }
 ```
 
-| property   | default      | description                                                                                                              |
-| ---------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `entry`    | -            | `required` entry file                                                                                                    |
-| `template` | `index.html` | template. Defaults is global `template`                                                                                  |
-| `title`    | -            | title. Defaults is global `title`                                                                                        |
-| `inject`   | -            | Data injected into HTML. `InjectOptions` [@see](#InjectOptions) <br/>Merge global `inject` by default via `lodash.merge` |
+| property   | default      | description                                                     |
+| ---------- | ------------ | --------------------------------------------------------------- |
+| `entry`    | -            | `required` entry file                                           |
+| `template` | `index.html` | template. Defaults is global `template`                         |
+| `title`    | -            | title. Defaults is global `title`                               |
+| `inject`   | -            | Data injected into HTML. `InjectOptions` [@see](#InjectOptions) |
 
 
 
