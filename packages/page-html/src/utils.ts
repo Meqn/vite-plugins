@@ -67,6 +67,8 @@ export function compileHtml(
   viteConfig: ResolvedConfig
 ) {
   const bodyInjectRE = /<\/body>/
+  // 匹配 script[type=module] 的入口文件
+  const scriptRE = /<script[^>]*type=["']module["'][^>]*>([\s\S]*?)<\/script>/gi
 
   return async function (html: string, data?: PageData): Promise<string> {
     try {
@@ -81,8 +83,9 @@ export function compileHtml(
       let result = await ejs.render(html, ejsData, ejsOptions)
 
       if (data?.entry) {
-        // 在这里需要移除 html的 entry: <script type="module">
-        result = result.replace(
+        // 1. 先移除 html 中已写入的入口文件 <script type="module">
+        // 2. 再向 html中写入配置的入口文件 data.entry
+        result = result.replace(scriptRE, '').replace(
           bodyInjectRE,
           `<script type="module" src="${resolve(
             viteConfig.base ?? '/',
