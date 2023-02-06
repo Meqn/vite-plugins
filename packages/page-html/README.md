@@ -90,7 +90,7 @@ export default defineConfig({
     PageHtml({
       /**
        * Visit URL. e.g. `page/about`
-       * @default index.html
+       * @default 'index'
        */
       page: 'index',
       /**

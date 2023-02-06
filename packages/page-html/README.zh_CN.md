@@ -41,9 +41,9 @@ npm install vite-plugin-page-html -D
 
 ## Usage
 
-在 html 中增加 `EJS` 标签, 比如 `index.html` :
+在 html 中使用 `EJS` 模板语法, 比如 `index.html` :
 
-> 提示：若在 vite.config.js 中配置了 entry ，则应删除 html模板 内的入口`script`标签。
+> 说明：环境变量(含内建变量)可直接使用。`<%= BASE_URL %>`
 
 ```html
 <!DOCTYPE html>
@@ -78,9 +78,12 @@ npm install vite-plugin-page-html -D
 </html>
 ```
 
+> **🚨 提醒：**  
+> 若在 vite.config.js 中配置了 entry ，则应删除 html模板 内的入口`script`标签。(默认自动删除入口标签)
+
 ### SPA
 
-单页应用配置，在 `vite.config.js` 中可随意指定 访问路径(`page`)、入口(`entry`)和 html模板(`template`)文件。
+单页应用配置，在 `vite.config.js` 中可随意指定 访问路径(`page`)、入口(`entry`)和 html(`template`)文件。
 
 ```js
 // vite.config.js
@@ -92,7 +95,7 @@ export default defineConfig({
     PageHtml({
       /**
        * 指定访问地址. e.g. `page/about`
-       * @default index.html
+       * @default 'index'
        */
       page: 'index',
       /**
@@ -384,5 +387,4 @@ export default defineConfig({
 ## Thanks
 
 [vite.js](https://github.com/vitejs/vite) 、 [ejs]() 、[html-minifier-terser](https://github.com/terser/html-minifier-terser) 
-
 
