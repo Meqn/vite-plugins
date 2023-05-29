@@ -45,33 +45,14 @@ Add EJS tags to html, such as `index.html`
 
 ```html
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
   <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
-    <meta name="renderer" content="webkit">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="format-detection" content="telphone=no">
     <title><%= pageHtmlVitePlugin.title %></title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
     <link rel="shortcut icon" href="<%= BASE_URL %>favicon.ico" type="image/x-icon">
-    <!-- injectStyle -->
-    <%- pageHtmlVitePlugin.data.injectStyle %>
   </head>
   <body>
     <div id="app"></div>
-
-    <% if(DEV) { %>
-    <script src="/path/development-only-script.js"></script>
-    <% } %>
-
-    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
-    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
-
-    <!-- injectScript -->
-    <%- pageHtmlVitePlugin.data.injectScript %>
   </body>
 </html>
 ```
@@ -88,41 +69,9 @@ export default defineConfig({
   plugins: [
     // ... plugins
     PageHtml({
-      /**
-       * Visit URL. e.g. `page/about`
-       * @default 'index'
-       */
       page: 'index',
-      /**
-       * The entry file, after configuration, you will need to delete the script tag in index.html
-       */
-      entry: 'src/main.js',
-      /**
-       * Specify the folder path of the html file
-       * @default index.html 
-       */
       template: 'src/index.html',
-      title: 'Vue App',
-      minify: false,
-      /**
-       * Data injected into the index.html ejs template
-       */
-      inject: {
-        data: {
-          injectStyle: `<script src="./inject.css"></script>`,
-          injectScript: `<script src="./inject.js"></script>`,
-          scripts: ['https://cdnjs.com/lodash/index.js']
-        },
-        tags: [
-          {
-            injectTo: 'body-prepend',
-            tag: 'div',
-            attrs: {
-              id: 'inject',
-            }
-          }
-        ]
-      }
+      title: 'Vue App'
     })
   ]
 })
@@ -142,21 +91,6 @@ export default defineConfig({
     // ... plugins
     PageHtml({
       template: 'src/index.html',
-      minify: true,
-      inject: {
-        data: {
-          injectStyle: `<script src="./inject.css"></script>`
-        }
-        tags: [
-          {
-            injectTo: 'body-prepend',
-            tag: 'div',
-            attrs: {
-              id: 'inject',
-            }
-          }
-        ]
-      },
       page: {
         index: 'src/main.js',
         about: {
@@ -166,16 +100,7 @@ export default defineConfig({
         'product/list': {
           entry: 'src/product/main.js',
           template: 'src/product/index.html', 
-          title: 'Product list',
-          /**
-           * Override global inject data
-           */
-          inject: {
-            data: {
-              injectStyle: `<script src="./product.css"></script>`
-            },
-            tags: []
-          }
+          title: 'Product list'
         }
       }
     })
@@ -367,7 +292,9 @@ export default defineConfig(({ command, mode }) => {
             'https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.min.js',
             'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/index.js',
             'https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js'
-          ]
+          ],
+          injectStyle: `<script src="./inject.css"></script>`,
+          injectScript: `<script src="./inject.js"></script>`
         }
       }
     })

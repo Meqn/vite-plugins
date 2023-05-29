@@ -47,33 +47,14 @@ npm install vite-plugin-page-html -D
 
 ```html
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
   <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
-    <meta name="renderer" content="webkit">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="format-detection" content="telphone=no">
     <title><%= pageHtmlVitePlugin.title %></title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
     <link rel="shortcut icon" href="<%= BASE_URL %>favicon.ico" type="image/x-icon">
-    <!-- injectStyle -->
-    <%- pageHtmlVitePlugin.data.injectStyle %>
   </head>
   <body>
     <div id="app"></div>
-
-    <% if(DEV) { %>
-    <script src="/path/development-only-script.js"></script>
-    <% } %>
-
-    <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
-    <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
-    <% } %>
-
-    <!-- injectScript -->
-    <%- pageHtmlVitePlugin.data.injectScript %>
   </body>
 </html>
 ```
@@ -93,41 +74,9 @@ export default defineConfig({
   plugins: [
     // ... plugins
     PageHtml({
-      /**
-       * 指定访问地址. e.g. `page/about`
-       * @default 'index'
-       */
       page: 'index',
-      /**
-       * 入口文件位置, 配置后将需要删除`index.html`内原有的 script 标签
-       */
-      entry: 'src/main.js',
-      /**
-       * 指定 html模板文件的位置
-       * @default index.html 
-       */
       template: 'src/index.html',
-      title: 'Vue App',
-      minify: false,
-      /**
-       * 注入 index.html ejs 模版的数据
-       */
-      inject: {
-        data: {
-          injectStyle: `<script src="./inject.css"></script>`,
-          injectScript: `<script src="./inject.js"></script>`,
-          scripts: ['https://cdnjs.com/lodash/index.js']
-        },
-        tags: [
-          {
-            injectTo: 'body-prepend',
-            tag: 'div',
-            attrs: {
-              id: 'inject',
-            }
-          }
-        ]
-      }
+      title: 'Vue App'
     })
   ]
 })
@@ -147,21 +96,6 @@ export default defineConfig({
     // ... plugins
     PageHtml({
       template: 'src/index.html',
-      minify: true,
-      inject: {
-        data: {
-          injectStyle: `<script src="./inject.css"></script>`
-        }
-        tags: [
-          {
-            injectTo: 'body-prepend',
-            tag: 'div',
-            attrs: {
-              id: 'inject',
-            }
-          }
-        ]
-      },
       page: {
         index: 'src/main.js',
         about: {
@@ -171,16 +105,7 @@ export default defineConfig({
         'product/list': {
           entry: 'src/product/main.js',
           template: 'src/product/index.html', 
-          title: 'Product list',
-          /**
-           * 将覆盖全局的 inject 数据
-           */
-          inject: {
-            data: {
-              injectStyle: `<script src="./product.css"></script>`
-            },
-            tags: []
-          }
+          title: 'Product list'
         }
       }
     })
@@ -251,7 +176,11 @@ interface InjectOptions {
   /**
    * @see https://cn.vitejs.dev/guide/api-plugin.html#vite-specific-hooks
    */
-  tags?: HtmlTagDescriptor[]
+  tags?: HtmlTagDescriptor[],
+  /**
+   * page data. Rendering via `ejs` : `<%= pageHtmlVitePlugin.data %>`
+   */
+  data?: Record<string, any>
 }
 
 interface HtmlTagDescriptor {
@@ -322,6 +251,9 @@ interface HtmlTagDescriptor {
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= pageHtmlVitePlugin.title %></title>
+
+    <!-- injectStyle -->
+    <%- pageHtmlVitePlugin.data.injectStyle %>
     
     <% for (var i in pageHtmlVitePlugin.data.styles) { %>
     <link rel="stylesheet" href="<%= pageHtmlVitePlugin.data.styles[i] %>">
@@ -329,11 +261,15 @@ interface HtmlTagDescriptor {
   </head>
   <body>
     <div id="app"></div>
+
     <% if(PROD) { %>
       <% for (var i in pageHtmlVitePlugin.data.scripts) { %>
       <script src="<%= pageHtmlVitePlugin.data.scripts[i] %>"></script>
       <% } %>
     <% } %>
+
+    <!-- injectScript -->
+    <%- pageHtmlVitePlugin.data.injectScript %>
   </body>
 </html>
 ```
@@ -358,15 +294,19 @@ export default defineConfig({
         },
       },
       template: 'public/template.html',
-      data: {
-        styles: [
-          'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/theme-chalk/index.css'
-        ],
-        scripts: [
-          'https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.min.js',
-          'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/index.js',
-          'https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js'
-        ]
+      inject: {
+        data: {
+          styles: [
+            'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/theme-chalk/index.css'
+          ],
+          scripts: [
+            'https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.min.js',
+            'https://cdn.jsdelivr.net/npm/element-ui@2.15.10/lib/index.js',
+            'https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js'
+          ],
+          injectStyle: `<script src="./inject.css"></script>`,
+          injectScript: `<script src="./inject.js"></script>`
+        }
       }
     })
   ],
